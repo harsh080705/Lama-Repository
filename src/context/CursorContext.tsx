@@ -9,7 +9,12 @@ import {
   type ReactNode,
 } from "react";
 
-export type CursorMode = "default" | "hover-project" | "hover-button" | "hidden";
+export type CursorMode =
+  | "default"
+  | "hover-project"
+  | "hover-button"
+  | "hover-link"
+  | "hidden";
 
 interface CursorContextValue {
   mode: CursorMode;

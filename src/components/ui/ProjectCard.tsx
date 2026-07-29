@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import {
   motion,
@@ -28,6 +28,19 @@ export default function ProjectCard({ project, onOpen, priority }: ProjectCardPr
     image: project.coverImage,
     imageCaption: project.title,
   });
+
+  // Preload every gallery URL as soon as the card mounts so the cursor
+  // image preview is decoded by the time the user actually hovers.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const urls = [project.coverImage, ...project.gallery].filter(Boolean);
+    for (const url of urls) {
+      const img = new window.Image();
+      img.decoding = "async";
+      img.loading = "eager";
+      img.src = url;
+    }
+  }, [project.coverImage, project.gallery]);
 
   const px = useMotionValue(0);
   const py = useMotionValue(0);

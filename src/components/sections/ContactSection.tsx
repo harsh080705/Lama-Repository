@@ -20,6 +20,8 @@ function MagneticLink({ href, label, external }: MagneticLinkProps) {
   const sx = useSpring(x, { stiffness: 200, damping: 15, mass: 0.4 });
   const sy = useSpring(y, { stiffness: 200, damping: 15, mass: 0.4 });
 
+  const hover = useCursorHover({ mode: "hover-link", text: label });
+
   const onMove = (e: React.PointerEvent<HTMLAnchorElement>) => {
     const el = ref.current;
     if (!el) return;
@@ -33,6 +35,7 @@ function MagneticLink({ href, label, external }: MagneticLinkProps) {
   const onLeave = () => {
     x.set(0);
     y.set(0);
+    hover.onPointerLeave();
   };
 
   return (
@@ -43,6 +46,7 @@ function MagneticLink({ href, label, external }: MagneticLinkProps) {
       rel={external ? "noreferrer" : undefined}
       style={{ x: sx, y: sy }}
       onPointerMove={onMove}
+      onPointerEnter={hover.onPointerEnter}
       onPointerLeave={onLeave}
       className="group inline-flex items-center gap-2 text-2xl md:text-3xl font-display font-medium uppercase tracking-tight"
     >

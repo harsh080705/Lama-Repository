@@ -1,32 +1,42 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import {
   motion,
   useMotionValue,
   useSpring,
   useTransform,
-  type MotionValue,
 } from "framer-motion";
 import { useCursor } from "@/context/CursorContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
+/** Electric Green */
+const ACCENT_RGB = "0, 255, 0";
+
 /**
  * Decides whether to mount the kinetic cursor at all. Touch devices,
- * coarse pointers, and reduced-motion users all keep the native OS cursor.
+ * coarse pointers, and reduced-motion users keep the native OS cursor.
  */
 function useCursorEnabled() {
   const coarse = useMediaQuery("(pointer: coarse)");
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
-  // Default to false during SSR/first paint to avoid a one-frame flash of
-  // `cursor: none` on devices that should be using the native cursor.
   if (coarse === undefined || reducedMotion === undefined) return false;
   return !coarse && !reducedMotion;
 }
 
+/**
+ * `true` for any cursor mode that should hide the outer ring entirely and
+ * snap the inner dot to electric lime at 1.5× scale.
+ */
+function isClickableTarget(mode: string, hoverImage: string | null): boolean {
+  if (mode === "hover-button" || mode === "hover-link") return true;
+  if (mode === "hover-project") return Boolean(hoverImage); // image already covers visual identity
+  return false;
+}
+
 export default function CustomCursor() {
   const enabled = useCursorEnabled();
-  const { mode, text } = useCursor();
+  const { mode, hoverImage } = useCursor();
 
   const mouseX = useMotionValue(-200);
   const mouseY = useMotionValue(-200);
@@ -35,28 +45,25 @@ export default function CustomCursor() {
   const dotX = useSpring(mouseX, { stiffness: 1200, damping: 60, mass: 0.2 });
   const dotY = useSpring(mouseY, { stiffness: 1200, damping: 60, mass: 0.2 });
 
-  // Slower outer ring for the agency trailing feel.
+  // Slower outer ring (only rendered in the default cursor state).
   const ringX = useSpring(mouseX, { stiffness: 220, damping: 24, mass: 0.6 });
   const ringY = useSpring(mouseY, { stiffness: 220, damping: 24, mass: 0.6 });
 
   const ringScale = useMotionValue(1);
-  const ringScaleSpring = useSpring(ringScale, { stiffness: 260, damping: 22 });
+  const ringScaleSpring = useSpring(ringScale, { stiffness: 280, damping: 24 });
+  const ringOpacity = useMotionValue(1);
+  const ringOpacitySpring = useSpring(ringOpacity, { stiffness: 300, damping: 30 });
 
   const dotScale = useMotionValue(1);
   const dotScaleSpring = useSpring(dotScale, { stiffness: 400, damping: 25 });
 
-  const ringBg = useTransform(
-    ringScaleSpring,
-    [1, 1.8],
-    ["rgba(255,255,255,0.08)", "rgba(255,255,255,0.18)"],
+  // Dot colour — solid lime on clickables, soft white otherwise. Hard swap
+  // (not interpolated) because the spec asks for an instant accent state.
+  const dotColor = useMotionValue<string>("rgba(237,237,237,1)");
+  const dotColorSpring = useSpring(
+    dotColor,
+    { stiffness: 400, damping: 30 },
   );
-  const ringBorder = useTransform(
-    ringScaleSpring,
-    [1, 1.6],
-    ["rgba(255,255,255,0.35)", "rgba(200,255,0,0.95)"],
-  );
-  const ringRadius = useTransform(ringScaleSpring, (v) => `${(v - 1) * 16 + 6}px`);
-  const textOpacity = useTransform(ringScaleSpring, [1, 1.3], [0, 1]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -67,10 +74,12 @@ export default function CustomCursor() {
     };
     const onLeave = () => {
       ringScale.set(0);
+      ringOpacity.set(0);
       dotScale.set(0);
     };
     const onEnter = () => {
       ringScale.set(1);
+      ringOpacity.set(1);
       dotScale.set(1);
     };
 
@@ -83,29 +92,53 @@ export default function CustomCursor() {
       document.removeEventListener("pointerleave", onLeave);
       document.removeEventListener("pointerenter", onEnter);
     };
-  }, [enabled, mouseX, mouseY, ringScale, dotScale]);
+  }, [enabled, mouseX, mouseY, ringScale, ringOpacity, dotScale]);
 
-  // Apply mode → target scale, hidden by default on a frozen page.
+  // Mode-driven targets.
   useEffect(() => {
     if (!enabled) return;
+    const clickable = isClickableTarget(mode, hoverImage);
+
     switch (mode) {
       case "hidden":
         ringScale.set(0);
+        ringOpacity.set(0);
         dotScale.set(0);
         break;
       case "hover-project":
-        ringScale.set(1.8);
-        dotScale.set(0);
+        // Image-active: ring fully hidden, dot becomes a vivid accent marker.
+        if (clickable) {
+          ringScale.set(1);
+          ringOpacity.set(0); // visible ring element won't draw anyway (opacity 0)
+          dotScale.set(1.5);
+          dotColor.set(`rgba(${ACCENT_RGB},1)`);
+        } else {
+          // No image: keep a slim accent ring.
+          ringScale.set(1.3);
+          ringOpacity.set(1);
+          dotScale.set(1.4);
+          dotColor.set(`rgba(${ACCENT_RGB},1)`);
+        }
         break;
       case "hover-button":
-        ringScale.set(1.4);
-        dotScale.set(1.1);
+        ringScale.set(1);
+        ringOpacity.set(0); // hide ring
+        dotScale.set(1.5); // crisp click target
+        dotColor.set(`rgba(${ACCENT_RGB},1)`);
+        break;
+      case "hover-link":
+        ringScale.set(1);
+        ringOpacity.set(0); // hide ring
+        dotScale.set(1.5);
+        dotColor.set(`rgba(${ACCENT_RGB},1)`);
         break;
       default:
         ringScale.set(1);
+        ringOpacity.set(1);
         dotScale.set(1);
+        dotColor.set("rgba(237,237,237,1)");
     }
-  }, [mode, enabled, ringScale, dotScale]);
+  }, [mode, hoverImage, enabled, ringScale, ringOpacity, dotScale, dotColor]);
 
   // Toggle the global CSS class so the page hides the native cursor only
   // while the kinetic cursor is mounted + active.
@@ -123,31 +156,25 @@ export default function CustomCursor() {
 
   if (!enabled) return null;
 
-  const isProject = mode === "hover-project";
+  // Render ring only when opacity > 0.001 (i.e. not in a clickable state).
+  const ringVisible = ringOpacitySpring.get() > 0.001;
 
   return (
     <>
-      <motion.div
-        aria-hidden
-        style={{
-          translateX: ringX,
-          translateY: ringY,
-          scale: ringScaleSpring,
-          borderRadius: ringRadius,
-          backgroundColor: ringBg,
-          borderColor: ringBorder,
-          top: -24,
-          left: -24,
-        }}
-        className="pointer-events-none fixed z-[9999] flex h-12 w-12 items-center justify-center border backdrop-blur-md"
-      >
-        <motion.span
-          style={{ opacity: textOpacity }}
-          className="px-2 text-[10px] font-semibold uppercase tracking-[0.25em] text-foreground"
-        >
-          {text || (isProject ? "View" : "")}
-        </motion.span>
-      </motion.div>
+      {ringVisible && (
+        <motion.div
+          aria-hidden
+          style={{
+            translateX: ringX,
+            translateY: ringY,
+            scale: ringScaleSpring,
+            opacity: ringOpacitySpring,
+            top: -14,
+            left: -14,
+          }}
+          className="pointer-events-none fixed z-[9999] h-7 w-7 rounded-full border border-white/35"
+        />
+      )}
 
       <motion.div
         aria-hidden
@@ -155,10 +182,15 @@ export default function CustomCursor() {
           translateX: dotX,
           translateY: dotY,
           scale: dotScaleSpring,
-          top: -3,
-          left: -3,
+          backgroundColor: dotColorSpring,
+          top: -6,
+          left: -6,
+          boxShadow:
+            mode === "hover-project" && hoverImage
+              ? `0 0 18px rgba(${ACCENT_RGB},0.55)`
+              : `0 0 0 rgba(0,0,0,0)`,
         }}
-        className="pointer-events-none fixed z-[9999] h-1.5 w-1.5 rounded-full bg-foreground"
+        className="pointer-events-none fixed z-[9999] h-3 w-3 rounded-full"
       />
     </>
   );

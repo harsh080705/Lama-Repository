@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import {
+  AnimatePresence,
   motion,
   useMotionValue,
   useSpring,
@@ -52,27 +53,16 @@ export default function CursorImagePreview() {
   const enabled = useFloatingPreviewEnabled();
   const { hoverImage, hoverImageCaption } = useCursor();
 
-  // Live cursor position (no spring — used for the float x/y).
   const mouseX = useMotionValue(-400);
   const mouseY = useMotionValue(-400);
 
-  // Lag-follow springs for the floating image — slower than the cursor
-  // itself so the image visibly trails behind the pointer.
-  const x = useSpring(mouseX, { stiffness: 180, damping: 22, mass: 0.6 });
-  const y = useSpring(mouseY, { stiffness: 180, damping: 22, mass: 0.6 });
-
-  // Tilt driven by horizontal velocity.
+  // Snappy, near-instant tracking — the preview must not drag behind the
+  // pointer. Tuned to feel like a 1:1 follow while still spring-smoothed
+  // (so micro-jitter is absorbed).
+  const x = useSpring(mouseX, { stiffness: 400, damping: 28, mass: 0.3 });
+  const y = useSpring(mouseY, { stiffness: 400, damping: 28, mass: 0.3 });
   const tilt = useVelocityTilt(mouseX);
   const rotateZ = useTransform(tilt, (v) => `${v.toFixed(2)}deg`);
-
-  // Entry/exit spring on opacity + scale.
-  const active = useMotionValue(0);
-  const scale = useSpring(useTransform(active, [0, 1], [0.6, 1]), {
-    stiffness: 260,
-    damping: 24,
-    mass: 0.5,
-  });
-  const opacity = useSpring(active, { stiffness: 200, damping: 28 });
 
   useEffect(() => {
     if (!enabled) return;
@@ -84,52 +74,48 @@ export default function CursorImagePreview() {
     return () => window.removeEventListener("pointermove", onMove);
   }, [enabled, mouseX, mouseY]);
 
-  // Drive active state from hoverImage. React state drives motion values
-  // here so a null → url transition animates cleanly.
-  const [activeUrl, setActiveUrl] = useState<string | null>(null);
-  useEffect(() => {
-    if (!enabled) return;
-    if (hoverImage) {
-      setActiveUrl(hoverImage);
-      active.set(1);
-    } else {
-      active.set(0);
-      // Wait for the exit tween to finish before swapping the src.
-      const t = window.setTimeout(() => setActiveUrl(null), 320);
-      return () => window.clearTimeout(t);
-    }
-  }, [hoverImage, enabled, active]);
-
-  if (!enabled || !activeUrl) return null;
+  // AnimatePresence drives the exit transition — no setTimeout, no race.
+  // `key` is the URL so swapping projects re-mounts with a fresh entry tween.
+  // Critically: pointer-leave sets hoverImage = null synchronously via the
+  // hook, and AnimatePresence handles the rest. There is no deferred
+  // setState that can be cancelled by a rapid re-hover and leave a stale
+  // image rendered.
+  if (!enabled) return null;
 
   return (
-    <motion.div
-      aria-hidden
-      style={{
-        translateX: x,
-        translateY: y,
-        scale,
-        opacity,
-        rotate: rotateZ,
-      }}
-      className="pointer-events-none fixed left-0 top-0 z-[9998] -translate-x-1/2 -translate-y-1/2"
-    >
-      <div className="relative h-44 w-64 overflow-hidden rounded-2xl border border-white/15 bg-surface shadow-2xl shadow-black/50 md:h-56 md:w-80">
-        <Image
-          src={activeUrl}
-          alt=""
-          fill
-          sizes="(max-width: 768px) 100vw, 320px"
-          quality={75}
-          className="object-cover"
-        />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        {hoverImageCaption && (
-          <span className="absolute bottom-3 left-3 right-3 truncate text-[10px] uppercase tracking-[0.25em] text-foreground">
-            {hoverImageCaption}
-          </span>
-        )}
-      </div>
-    </motion.div>
+    <AnimatePresence>
+      {hoverImage && (
+        <motion.div
+          key={hoverImage}
+          aria-hidden
+          initial={{ opacity: 0, scale: 0.6 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.15 } }}
+          transition={{
+            opacity: { duration: 0.2 },
+            scale: { type: "spring", stiffness: 260, damping: 24, mass: 0.5 },
+          }}
+          style={{ translateX: x, translateY: y, rotate: rotateZ }}
+          className="pointer-events-none fixed left-0 top-0 z-[9998] -translate-x-1/2 -translate-y-1/2"
+        >
+          <div className="relative h-44 w-64 overflow-hidden rounded-2xl border border-white/15 bg-surface shadow-2xl shadow-black/50 md:h-56 md:w-80">
+            <Image
+              src={hoverImage}
+              alt=""
+              fill
+              sizes="(max-width: 768px) 100vw, 320px"
+              quality={75}
+              className="object-cover"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            {hoverImageCaption && (
+              <span className="absolute bottom-3 left-3 right-3 truncate text-[10px] uppercase tracking-[0.25em] text-foreground">
+                {hoverImageCaption}
+              </span>
+            )}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

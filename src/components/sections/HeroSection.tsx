@@ -1,7 +1,10 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { ArrowDown, Circle } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring } from "framer-motion";
+import { useLenis } from "@/context/SmoothScrollProvider";
+import { useCursor } from "@/context/CursorContext";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -13,6 +16,83 @@ const fadeUp = {
     transition: { delay: 0.15 + i * 0.12, duration: 0.9, ease },
   }),
 };
+
+const SCROLL_EASING = (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t));
+const FADE_THRESHOLD = 150; // px of scroll past which the indicator fades
+
+function HeroScrollButton() {
+  const lenis = useLenis();
+  const { setCursorMode, setCursorText } = useCursor();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // Opacity driven by scroll position; spring smooths the toggle.
+  const opacity = useMotionValue(1);
+  const opacitySpring = useSpring(opacity, {
+    stiffness: 220,
+    damping: 26,
+    mass: 0.5,
+  });
+  const visible = useRef(true);
+
+  useEffect(() => {
+    const update = () => {
+      const next = window.scrollY < FADE_THRESHOLD;
+      if (next !== visible.current) {
+        visible.current = next;
+        opacity.set(next ? 1 : 0);
+      }
+    };
+    update();
+
+    const onScroll = () => {
+      if (buttonRef.current === null) return;
+      window.requestAnimationFrame(update);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [opacity]);
+
+  const onClick = () => {
+    if (lenis) {
+      lenis.scrollTo("#about", { duration: 1.5, easing: SCROLL_EASING });
+      return;
+    }
+    // Native fallback if Lenis failed to mount.
+    const el = document.querySelector("#about");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  return (
+    <motion.button
+      ref={buttonRef}
+      type="button"
+      onClick={onClick}
+      onPointerEnter={() => {
+        setCursorMode("hover-button");
+        setCursorText("Scroll");
+      }}
+      onPointerLeave={() => {
+        setCursorMode("default");
+        setCursorText("");
+      }}
+      aria-label="Scroll to about"
+      style={{
+        opacity: opacitySpring,
+        pointerEvents: visible.current ? "auto" : "none",
+      }}
+      className="hidden md:flex flex-col items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-muted"
+    >
+      <span>Scroll</span>
+      <motion.span
+        aria-hidden
+        animate={{ y: [0, 6, 0] }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <ArrowDown className="h-4 w-4" strokeWidth={1.25} />
+      </motion.span>
+    </motion.button>
+  );
+}
 
 export default function HeroSection() {
   return (
@@ -81,21 +161,7 @@ export default function HeroSection() {
           interactive interfaces for ambitious teams.
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2, duration: 0.8 }}
-          className="hidden md:flex flex-col items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-muted"
-          aria-hidden
-        >
-          <span>Scroll</span>
-          <motion.span
-            animate={{ y: [0, 6, 0] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <ArrowDown className="h-4 w-4" strokeWidth={1.25} />
-          </motion.span>
-        </motion.div>
+        <HeroScrollButton />
       </footer>
     </section>
   );
