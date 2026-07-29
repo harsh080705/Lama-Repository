@@ -10,18 +10,19 @@ import { projects, type Project } from "@/data/projects";
 
 /**
  * Accordion-style quick-links list. Each row:
- *   - default: title left, year/category right, dark surface
- *   - hover:  smoothly expands via Framer Motion height auto,
- *             reveals a clean two-column text layout (description on
- *             the left, action button with animated progress fill on
- *             the right), lifts up 2px, border + surface highlight.
+ *   - default:  title left, year/category right, dark surface
+ *   - hover:    smoothly expands via Framer Motion height auto,
+ *               reveals a two-column layout:
+ *                 [Left]  description + inline tech stack badges
+ *                 [Right] animated progress-fill action button
+ *               lifts up 2px, surface highlight + accent top border.
  *
- * Clicking a row OR its action button either scrolls to the matching
- * card via Lenis, or opens the project modal directly.
+ * Clicking a row opens the modal; clicking the action bar scrolls to
+ * the matching card via Lenis.
  */
 
 const SCROLL_EASING = (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t));
-const PROGRESS_FILL_MS = 700; // 0.7s — sits between the spec's 0.6–0.8s window
+const PROGRESS_FILL_MS = 700;
 
 function ActionBar({
   project,
@@ -41,8 +42,7 @@ function ActionBar({
       }}
       className="group/bar relative w-full overflow-hidden rounded-full border border-white/15 px-5 py-3 text-left transition-colors hover:border-white/30"
     >
-      {/* Progress fill — animates from 0 → 100% on hover.
-          Sits behind the text layer (z-10), anchored to the left edge. */}
+      {/* Progress fill — animates 0 → 100% on hover. */}
       <motion.span
         aria-hidden
         initial={false}
@@ -52,7 +52,7 @@ function ActionBar({
         className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-r from-accent/40 via-accent/20 to-accent/5"
       />
 
-      {/* Static surface so the text stays legible before the fill completes */}
+      {/* Static base so the text stays legible before the fill completes */}
       <span
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 bg-white/[0.04]"
@@ -149,7 +149,7 @@ function ProjectRow({
           </span>
         </div>
 
-        {/* Accordion expansion — text + action bar only, no image */}
+        {/* Accordion expansion — text + tech badges left, action bar right */}
         <motion.div
           initial={false}
           animate={{
@@ -163,7 +163,7 @@ function ProjectRow({
           className="overflow-hidden"
         >
           <div className="grid grid-cols-12 gap-6 pt-5 md:gap-10">
-            {/* Left column — full description */}
+            {/* Left column — description + inline tech stack */}
             <div className="col-span-12 md:col-span-7">
               <p className="text-base md:text-lg text-muted leading-relaxed">
                 {project.description}

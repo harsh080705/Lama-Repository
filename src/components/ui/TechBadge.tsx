@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import {
   Atom,
   Code2,
@@ -109,10 +108,10 @@ export default function TechBadge({
   if (!icon) return null;
 
   return (
-    <motion.span
-      animate={{ opacity: hovered ? 0.8 : 0.4 }}
-      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-      className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.03] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-white"
+    <span
+      className={`flex items-center gap-1.5 rounded bg-white/5 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.2em] text-white/60 transition-opacity duration-300 ${
+        hovered ? "opacity-100" : "opacity-40"
+      }`}
       title={tag}
     >
       <span className="flex h-3.5 w-3.5 items-center justify-center">
@@ -123,7 +122,7 @@ export default function TechBadge({
         )}
       </span>
       <span>{tag}</span>
-    </motion.span>
+    </span>
   );
 }
 
