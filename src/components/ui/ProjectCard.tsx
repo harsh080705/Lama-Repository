@@ -25,6 +25,8 @@ export default function ProjectCard({ project, onOpen, priority }: ProjectCardPr
   const hoverHandlers = useCursorHover({
     mode: "hover-project",
     text: "View",
+    image: project.coverImage,
+    imageCaption: project.title,
   });
 
   const px = useMotionValue(0);
