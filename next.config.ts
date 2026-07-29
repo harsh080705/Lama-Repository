@@ -9,8 +9,13 @@ const nextConfig: NextConfig = {
     },
     resolveExtensions: [".ts", ".tsx", ".js", ".jsx"],
   },
-  webpack: (config) => {
-    return config;
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+    ],
   },
 };
 

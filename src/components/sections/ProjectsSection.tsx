@@ -80,7 +80,11 @@ export default function ProjectsSection() {
                 exit={{ opacity: 0, y: -16 }}
                 transition={{ duration: 0.6, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
               >
-                <ProjectCard project={project} onOpen={() => setActive(project)} />
+                <ProjectCard
+                project={project}
+                onOpen={() => setActive(project)}
+                priority={i === 0}
+              />
               </motion.div>
             ))}
           </AnimatePresence>

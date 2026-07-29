@@ -1,41 +1,76 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ── Dependencies ────────────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+.pnpm-store/
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# ── Build output ────────────────────────────────────────────────────────
+.next/
+out/
+build/
+dist/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
 
-# testing
-/coverage
+# ── Testing / Coverage ──────────────────────────────────────────────────
+coverage/
+.nyc_output/
 
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
+# ── Misc ────────────────────────────────────────────────────────────────
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 *.pem
 
-# debug
+# ── Logs ────────────────────────────────────────────────────────────────
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 .pnpm-debug.log*
+lerna-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# ── Editor / OS ─────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
 
-# vercel
+# ── Environment variables (NEVER commit secrets) ───────────────────────
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ── Vercel ──────────────────────────────────────────────────────────────
 .vercel
 
-# typescript
+# ── TypeScript ──────────────────────────────────────────────────────────
 *.tsbuildinfo
-next-env.d.ts
+
+# ── Optional npm / yarn integrity files ────────────────────────────────
+.npm/
+.yarn/
+.pnp.*
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# ── Three.js / WebGL artifacts (in case of texture/HDRI dumps) ─────────
+*.hdr
+*.exr
+public/textures/
+
+# ── Misc OS / runtime caches ───────────────────────────────────────────
+.eslintcache
+.cache/
+.parcel-cache/
+.stylelintcache

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Image from "next/image";
 import {
   motion,
   useMotionValue,
@@ -15,9 +16,11 @@ import { useCursorHover } from "@/hooks/useCursorHover";
 interface ProjectCardProps {
   project: Project;
   onOpen: () => void;
+  /** First card in the grid gets `priority` for LCP. */
+  priority?: boolean;
 }
 
-export default function ProjectCard({ project, onOpen }: ProjectCardProps) {
+export default function ProjectCard({ project, onOpen, priority }: ProjectCardProps) {
   const cardRef = useRef<HTMLButtonElement>(null);
   const hoverHandlers = useCursorHover({
     mode: "hover-project",
@@ -69,18 +72,40 @@ export default function ProjectCard({ project, onOpen }: ProjectCardProps) {
       className="group relative block w-full overflow-hidden rounded-2xl border border-white/10 bg-surface text-left will-change-transform"
     >
       <div
-        className="relative aspect-[4/3] w-full overflow-hidden"
+        className="relative aspect-[4/3] w-full overflow-hidden bg-surface"
         style={{ transform: "translateZ(20px)" }}
       >
+        <Image
+          src={project.coverImage}
+          alt={`${project.title} cover`}
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          quality={85}
+          priority={priority}
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+        />
+
+        {/* Tonal gradient overlay keeps the category badge legible */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
+
+        {/* The `image` colour acts as a base layer that shows through if the
+            Unsplash image hasn't decoded yet — invisible once loaded. */}
         <div
-          className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-105"
+          aria-hidden
+          className="absolute inset-0 -z-10"
           style={{ background: project.image }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
         <span className="absolute left-4 top-4 rounded-full border border-white/15 bg-black/40 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-foreground/90 backdrop-blur-md">
           {project.category}
         </span>
+
+        {project.videoPreview && (
+          <span className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-2.5 py-1 text-[10px] uppercase tracking-[0.25em] text-foreground/90 backdrop-blur-md">
+            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+            Video
+          </span>
+        )}
 
         <motion.span
           aria-hidden

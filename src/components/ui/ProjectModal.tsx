@@ -1,10 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUpRight, X } from "lucide-react";
-import { useLenis } from "@/components/providers/SmoothScrollProvider";
+import { ArrowUpRight, Pause, Play, X } from "lucide-react";
+import { useLenis } from "@/context/SmoothScrollProvider";
 import type { Project } from "@/data/projects";
+
+interface ProjectModalProps {
+  project: Project | null;
+  onClose: () => void;
+}
 
 function GithubMark({ className }: { className?: string }) {
   return (
@@ -19,9 +25,47 @@ function GithubMark({ className }: { className?: string }) {
   );
 }
 
-interface ProjectModalProps {
-  project: Project | null;
-  onClose: () => void;
+/**
+ * Video block with skeleton + play/pause control overlay. Muted + looping +
+ * playsInline so mobile browsers don't hijack fullscreen or audio.
+ */
+function VideoShowcase({ src, poster }: { src: string; poster?: string }) {
+  return (
+    <div className="group/video relative overflow-hidden rounded-2xl border border-white/10 bg-surface">
+      <video
+        src={src}
+        poster={poster}
+        autoPlay
+        loop
+        muted
+        playsInline
+        className="aspect-video w-full object-cover"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+      <div className="absolute right-3 top-3 flex items-center gap-2 rounded-full border border-white/15 bg-black/40 px-3 py-1 backdrop-blur-md">
+        <Play className="h-3 w-3 fill-accent text-accent" />
+        <span className="text-[10px] uppercase tracking-[0.25em] text-foreground/90">
+          Live preview
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function GalleryImage({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div className="group relative overflow-hidden rounded-xl border border-white/10 bg-surface">
+      <Image
+        src={src}
+        alt={alt}
+        width={1600}
+        height={1000}
+        sizes="(max-width: 768px) 100vw, 50vw"
+        quality={80}
+        className="aspect-[16/10] w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+      />
+    </div>
+  );
 }
 
 export default function ProjectModal({ project, onClose }: ProjectModalProps) {
@@ -91,7 +135,21 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
             </header>
 
             <div className="px-6 py-10 md:px-10 md:py-14">
-              <span className="inline-block rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.25em]">
+              {/* Hero cover image */}
+              <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-surface">
+                <Image
+                  src={project.coverImage}
+                  alt={`${project.title} hero`}
+                  width={1600}
+                  height={1000}
+                  sizes="(max-width: 768px) 100vw, 640px"
+                  quality={85}
+                  priority
+                  className="aspect-[16/10] w-full object-cover"
+                />
+              </div>
+
+              <span className="mt-8 inline-block rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[10px] uppercase tracking-[0.25em]">
                 {project.category}
               </span>
 
@@ -156,6 +214,29 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                     >
                       {t}
                     </span>
+                  ))}
+                </div>
+              </section>
+
+              {/* ── Media showcase ────────────────────────────────────── */}
+              <section className="mt-12">
+                <h3 className="text-xs uppercase tracking-[0.3em] text-muted">
+                  Media
+                </h3>
+
+                {project.videoPreview && (
+                  <div className="mt-4">
+                    <VideoShowcase src={project.videoPreview} poster={project.coverImage} />
+                  </div>
+                )}
+
+                <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {project.gallery.map((src, i) => (
+                    <GalleryImage
+                      key={src}
+                      src={src}
+                      alt={`${project.title} screenshot ${i + 1}`}
+                    />
                   ))}
                 </div>
               </section>
