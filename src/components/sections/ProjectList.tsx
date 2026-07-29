@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useLenis } from "@/context/SmoothScrollProvider";
 import { useCursor } from "@/context/CursorContext";
+import { TechStackRow } from "@/components/ui/TechBadge";
 import { projects, type Project } from "@/data/projects";
 
 /**
@@ -167,16 +168,7 @@ function ProjectRow({
               <p className="text-base md:text-lg text-muted leading-relaxed">
                 {project.description}
               </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {project.tags.slice(0, 4).map((t) => (
-                  <span
-                    key={t}
-                    className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-foreground/80"
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
+              <TechStackRow project={project} hovered={hovered} />
             </div>
 
             {/* Right column — action bar with animated progress fill */}
