@@ -4,13 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 import { useLenis } from "@/context/SmoothScrollProvider";
-import { useCursor } from "@/context/CursorContext";
 
 /**
  * Bottom-left floating scroll indicator.
  * - Click → Lenis smooth-scrolls to the next section (`#about`).
- * - Hover → cursor mode flips to `hover-button` so the dot becomes the
- *   electric-lime accent state defined in `<CustomCursor />`.
  * - Scrolling past `hideThreshold` (default 240px) fades the indicator out
  *   so it never overlaps mid-page content.
  */
@@ -31,7 +28,6 @@ export default function ScrollIndicator({
   duration = 1.5,
 }: ScrollIndicatorProps) {
   const lenis = useLenis();
-  const { setCursorMode, setCursorText } = useCursor();
   const ref = useRef<HTMLButtonElement>(null);
   const [visible, setVisible] = useState(true);
 
@@ -78,23 +74,11 @@ export default function ScrollIndicator({
     el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const onEnter = () => {
-    setCursorMode("hover-button");
-    setCursorText("Scroll");
-  };
-
-  const onLeave = () => {
-    setCursorMode("default");
-    setCursorText("");
-  };
-
   return (
     <motion.button
       ref={ref}
       type="button"
       onClick={onClick}
-      onPointerEnter={onEnter}
-      onPointerLeave={onLeave}
       aria-label={`Scroll to ${target.replace("#", "")}`}
       style={{
         opacity: opacitySpring,

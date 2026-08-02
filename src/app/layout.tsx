@@ -3,7 +3,6 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { CursorProvider } from "@/context/CursorContext";
 import { SmoothScrollProvider } from "@/context/SmoothScrollProvider";
 import CustomCursor from "@/components/ui/CustomCursor";
-import CursorImagePreview from "@/components/ui/CursorImagePreview";
 import "./globals.css";
 
 const inter = Inter({
@@ -49,7 +48,6 @@ export default function RootLayout({
         <CursorProvider>
           <SmoothScrollProvider>
             <CustomCursor />
-            <CursorImagePreview />
             {children}
           </SmoothScrollProvider>
         </CursorProvider>

@@ -5,47 +5,43 @@ import { useCursor, type CursorMode } from "@/context/CursorContext";
 
 interface CursorHoverOptions {
   mode?: CursorMode;
-  text?: string;
-  image?: string | null;
-  imageCaption?: string;
-  /** If true, pointer-leave does NOT immediately null the image — it waits
-   *  for a sibling `onEnter` to cancel it. Useful when hoverables are
-   *  visually adjacent (e.g. adjacent project cards). Default false so
-   *  the cursor image clears instantly on mouse-out, matching the spec. */
+  /** Image URL for hover-preview mode (thumbnail). */
+  previewImage?: string | null;
+  /** Caption rendered beneath the hover-preview thumbnail. */
+  previewCaption?: string;
+  /** Badge text for hover-project mode (pill). */
+  projectLabel?: string;
+  /** If true, pointer-leave does NOT immediately reset — it waits for
+   *  a sibling `onEnter` to cancel the pending reset within
+   *  `bridgeWindowMs`. Default false. */
   bridge?: boolean;
-  /** Bridge window in ms — only used when `bridge: true`. Default 60ms. */
   bridgeWindowMs?: number;
 }
 
 /**
- * Returns memoised pointer enter/leave handlers that flip cursor mode,
- * label, and floating image together. Spread onto any JSX element:
+ * Returns memoised pointer enter/leave handlers that flip the cursor
+ * mode + preview/label state together. Spread onto any JSX element:
  *
- *   <div {...useCursorHover({ mode: "hover-project", text: "View",
- *                                image: project.coverImage, imageCaption: project.title })} />
+ *   <button {...useCursorHover({ mode: "hover-button" })} />
+ *   <div {...useCursorHover({ mode: "hover-preview", previewImage: url, previewCaption: "Lumen" })} />
+ *   <article {...useCursorHover({ mode: "hover-project", projectLabel: "View Project" })} />
  *
- * Default behaviour is "instant": pointer-leave immediately nulls the
- * image so the floating preview can never get stuck. If `bridge: true`
- * is passed, a short delay allows a sibling enter to cancel the leave —
- * only useful for tightly-packed hoverables.
+ * Default behaviour is "instant": pointer-leave immediately resets to
+ * `default` + clears preview/label. Pass `bridge: true` for tightly-packed
+ * hoverables where a sibling `onEnter` should cancel the leave.
  */
 export function useCursorHover({
   mode = "default",
-  text,
-  image,
-  imageCaption,
+  previewImage,
+  previewCaption,
+  projectLabel,
   bridge = false,
   bridgeWindowMs = 60,
 }: CursorHoverOptions = {}) {
-  const { setCursorMode, setCursorText, setHoverImage } = useCursor();
+  const { setCursorMode, setPreviewImage, setPreviewCaption, setProjectLabel, reset } =
+    useCursor();
   const leaveTimer = useRef<number | null>(null);
   const token = useRef(0);
-
-  const reset = useCallback(() => {
-    setCursorMode("default");
-    setCursorText("");
-    setHoverImage(null, "");
-  }, [setCursorMode, setCursorText, setHoverImage]);
 
   const onEnter = useCallback(() => {
     if (leaveTimer.current !== null) {
@@ -54,9 +50,19 @@ export function useCursorHover({
     }
     token.current += 1;
     setCursorMode(mode);
-    if (text !== undefined) setCursorText(text);
-    if (image !== undefined) setHoverImage(image, imageCaption);
-  }, [mode, text, image, imageCaption, setCursorMode, setCursorText, setHoverImage]);
+    if (previewImage !== undefined) setPreviewImage(previewImage);
+    if (previewCaption !== undefined) setPreviewCaption(previewCaption);
+    if (projectLabel !== undefined) setProjectLabel(projectLabel);
+  }, [
+    mode,
+    previewImage,
+    previewCaption,
+    projectLabel,
+    setCursorMode,
+    setPreviewImage,
+    setPreviewCaption,
+    setProjectLabel,
+  ]);
 
   const onLeave = useCallback(() => {
     if (leaveTimer.current !== null) {
@@ -64,15 +70,13 @@ export function useCursorHover({
     }
 
     if (!bridge) {
-      // Instant clear — the spec: "instantly set hoverImage to null on
-      // onMouseLeave without delay".
       reset();
       return;
     }
 
     const currentToken = token.current;
     leaveTimer.current = window.setTimeout(() => {
-      if (currentToken !== token.current) return; // sibling enter cancelled
+      if (currentToken !== token.current) return;
       leaveTimer.current = null;
       reset();
     }, bridgeWindowMs);

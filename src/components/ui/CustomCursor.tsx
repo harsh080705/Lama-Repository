@@ -1,22 +1,32 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import Image from "next/image";
 import {
   motion,
   useMotionValue,
   useSpring,
-  useTransform,
+  type MotionValue,
 } from "framer-motion";
 import { useCursor } from "@/context/CursorContext";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
-/** Electric Green */
-const ACCENT_RGB = "0, 255, 0";
-
 /**
- * Decides whether to mount the kinetic cursor at all. Touch devices,
- * coarse pointers, and reduced-motion users keep the native OS cursor.
+ * Kinetic cursor with four behaviour modes:
+ *   default         → small white dot + trailing ring
+ *   hover-button    → lime dot, ring hidden
+ *   hover-project   → pill badge "VIEW PROJECT →"
+ *   hover-preview   → floating thumbnail card offset from the pointer
+ *
+ * The cursor stays hidden until the pointer has moved at least once,
+ * which avoids the initial jump/flicker on first paint.
  */
+
+const KINETIC_CLASS = "cursor-kinetic-active";
+const ACCENT = "#bef264";
+const DOT_COLOR = "#ededed";
+
 function useCursorEnabled() {
   const coarse = useMediaQuery("(pointer: coarse)");
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
@@ -24,174 +34,195 @@ function useCursorEnabled() {
   return !coarse && !reducedMotion;
 }
 
-/**
- * `true` for any cursor mode that should hide the outer ring entirely and
- * snap the inner dot to electric lime at 1.5× scale.
- */
-function isClickableTarget(mode: string, hoverImage: string | null): boolean {
-  if (mode === "hover-button" || mode === "hover-link") return true;
-  if (mode === "hover-project") return Boolean(hoverImage); // image already covers visual identity
-  return false;
+function CursorDot({ x, y }: { x: MotionValue<number>; y: MotionValue<number> }) {
+  const { mode } = useCursor();
+  const scale = useMotionValue(1);
+  const scaleSpring = useSpring(scale, { stiffness: 400, damping: 25 });
+
+  useEffect(() => {
+    if (mode === "hover-button") {
+      scale.set(2.2);
+    } else if (mode === "hover-project" || mode === "hover-preview") {
+      scale.set(0);
+    } else {
+      scale.set(1);
+    }
+  }, [mode, scale]);
+
+  return (
+    <motion.div
+      aria-hidden
+      style={{
+        x,
+        y,
+        scale: scaleSpring,
+        pointerEvents: "none",
+        backgroundColor: mode === "hover-button" ? ACCENT : DOT_COLOR,
+      }}
+      className="pointer-events-none h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+    />
+  );
+}
+
+function CursorProjectPill({
+  x,
+  y,
+}: {
+  x: MotionValue<number>;
+  y: MotionValue<number>;
+}) {
+  const { mode } = useCursor();
+  const scale = useMotionValue(0.6);
+  const scaleSpring = useSpring(scale, { stiffness: 320, damping: 26, mass: 0.4 });
+
+  useEffect(() => {
+    scale.set(mode === "hover-project" ? 1 : 0.6);
+  }, [mode, scale]);
+
+  if (mode !== "hover-project") return null;
+
+  return (
+    <motion.div
+      aria-hidden
+      style={{
+        x,
+        y,
+        scale: scaleSpring,
+        pointerEvents: "none",
+      }}
+      className="pointer-events-none flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#bef264] text-center text-[11px] font-mono font-bold uppercase tracking-[0.25em] text-black shadow-xl"
+    >
+      <span>VIEW</span>
+    </motion.div>
+  );
+}
+
+function CursorPreview({
+  x,
+  y,
+}: {
+  x: MotionValue<number>;
+  y: MotionValue<number>;
+}) {
+  const { mode, previewImage, previewCaption } = useCursor();
+  const opacity = useMotionValue(0);
+  const opacitySpring = useSpring(opacity, { stiffness: 300, damping: 22 });
+  const scale = useMotionValue(0.85);
+  const scaleSpring = useSpring(scale, { stiffness: 300, damping: 22 });
+
+  useEffect(() => {
+    if (mode === "hover-preview" && previewImage) {
+      opacity.set(1);
+      scale.set(1);
+    } else {
+      opacity.set(0);
+      scale.set(0.85);
+    }
+  }, [mode, previewImage, opacity, scale]);
+
+  if (mode !== "hover-preview" || !previewImage) return null;
+
+  return (
+    <motion.div
+      aria-hidden
+      style={{
+        x,
+        y,
+        opacity: opacitySpring,
+        scale: scaleSpring,
+        pointerEvents: "none",
+        top: 20,
+        left: 20,
+      }}
+      className="w-52 overflow-hidden rounded-xl border border-white/20 bg-black shadow-2xl"
+    >
+      <div className="relative h-36 w-full bg-black">
+        <Image
+          src={previewImage}
+          alt={previewCaption || "Project preview"}
+          fill
+          sizes="208px"
+          className="object-cover"
+        />
+      </div>
+      {previewCaption && (
+        <div className="border-t border-white/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/80">
+          {previewCaption}
+        </div>
+      )}
+    </motion.div>
+  );
 }
 
 export default function CustomCursor() {
   const enabled = useCursorEnabled();
-  const { mode, hoverImage } = useCursor();
+  const { mode } = useCursor();
+  const [hasMoved, setHasMoved] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const mouseX = useMotionValue(-200);
-  const mouseY = useMotionValue(-200);
+  const cursorX = useMotionValue(0);
+  const cursorY = useMotionValue(0);
 
-  // Tight, low-latency inner dot.
-  const dotX = useSpring(mouseX, { stiffness: 1200, damping: 60, mass: 0.2 });
-  const dotY = useSpring(mouseY, { stiffness: 1200, damping: 60, mass: 0.2 });
-
-  // Slower outer ring (only rendered in the default cursor state).
-  const ringX = useSpring(mouseX, { stiffness: 220, damping: 24, mass: 0.6 });
-  const ringY = useSpring(mouseY, { stiffness: 220, damping: 24, mass: 0.6 });
-
-  const ringScale = useMotionValue(1);
-  const ringScaleSpring = useSpring(ringScale, { stiffness: 280, damping: 24 });
-  const ringOpacity = useMotionValue(1);
-  const ringOpacitySpring = useSpring(ringOpacity, { stiffness: 300, damping: 30 });
-
-  const dotScale = useMotionValue(1);
-  const dotScaleSpring = useSpring(dotScale, { stiffness: 400, damping: 25 });
-
-  // Dot colour — solid lime on clickables, soft white otherwise. Hard swap
-  // (not interpolated) because the spec asks for an instant accent state.
-  const dotColor = useMotionValue<string>("rgba(237,237,237,1)");
-  const dotColorSpring = useSpring(
-    dotColor,
-    { stiffness: 400, damping: 30 },
-  );
+  const dotX = useSpring(cursorX, { stiffness: 800, damping: 50, mass: 0.2 });
+  const dotY = useSpring(cursorY, { stiffness: 800, damping: 50, mass: 0.2 });
+  const previewX = cursorX;
+  const previewY = cursorY;
+  const pillX = dotX;
+  const pillY = dotY;
 
   useEffect(() => {
-    if (!enabled) return;
+    setMounted(true);
+  }, []);
 
-    const onMove = (e: PointerEvent) => {
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
-    };
-    const onLeave = () => {
-      ringScale.set(0);
-      ringOpacity.set(0);
-      dotScale.set(0);
-    };
-    const onEnter = () => {
-      ringScale.set(1);
-      ringOpacity.set(1);
-      dotScale.set(1);
+  useEffect(() => {
+    if (!enabled) {
+      setHasMoved(false);
+      return;
+    }
+
+    const onMove = (event: MouseEvent | PointerEvent) => {
+      if (!hasMoved) {
+        setHasMoved(true);
+      }
+      cursorX.set(event.clientX);
+      cursorY.set(event.clientY);
     };
 
     window.addEventListener("pointermove", onMove, { passive: true });
-    document.addEventListener("pointerleave", onLeave);
-    document.addEventListener("pointerenter", onEnter);
 
     return () => {
       window.removeEventListener("pointermove", onMove);
-      document.removeEventListener("pointerleave", onLeave);
-      document.removeEventListener("pointerenter", onEnter);
     };
-  }, [enabled, mouseX, mouseY, ringScale, ringOpacity, dotScale]);
+  }, [enabled, hasMoved, cursorX, cursorY]);
 
-  // Mode-driven targets.
   useEffect(() => {
-    if (!enabled) return;
-    const clickable = isClickableTarget(mode, hoverImage);
-
-    switch (mode) {
-      case "hidden":
-        ringScale.set(0);
-        ringOpacity.set(0);
-        dotScale.set(0);
-        break;
-      case "hover-project":
-        // Image-active: ring fully hidden, dot becomes a vivid accent marker.
-        if (clickable) {
-          ringScale.set(1);
-          ringOpacity.set(0); // visible ring element won't draw anyway (opacity 0)
-          dotScale.set(1.5);
-          dotColor.set(`rgba(${ACCENT_RGB},1)`);
-        } else {
-          // No image: keep a slim accent ring.
-          ringScale.set(1.3);
-          ringOpacity.set(1);
-          dotScale.set(1.4);
-          dotColor.set(`rgba(${ACCENT_RGB},1)`);
-        }
-        break;
-      case "hover-button":
-        ringScale.set(1);
-        ringOpacity.set(0); // hide ring
-        dotScale.set(1.5); // crisp click target
-        dotColor.set(`rgba(${ACCENT_RGB},1)`);
-        break;
-      case "hover-link":
-        ringScale.set(1);
-        ringOpacity.set(0); // hide ring
-        dotScale.set(1.5);
-        dotColor.set(`rgba(${ACCENT_RGB},1)`);
-        break;
-      default:
-        ringScale.set(1);
-        ringOpacity.set(1);
-        dotScale.set(1);
-        dotColor.set("rgba(237,237,237,1)");
-    }
-  }, [mode, hoverImage, enabled, ringScale, ringOpacity, dotScale, dotColor]);
-
-  // Toggle the global CSS class so the page hides the native cursor only
-  // while the kinetic cursor is mounted + active.
-  useEffect(() => {
-    const cls = "cursor-kinetic-active";
+    if (typeof document === "undefined") return;
     if (enabled) {
-      document.documentElement.classList.add(cls);
+      document.documentElement.classList.add(KINETIC_CLASS);
     } else {
-      document.documentElement.classList.remove(cls);
+      document.documentElement.classList.remove(KINETIC_CLASS);
     }
+
     return () => {
-      document.documentElement.classList.remove(cls);
+      document.documentElement.classList.remove(KINETIC_CLASS);
     };
   }, [enabled]);
 
-  if (!enabled) return null;
+  if (!enabled || !mounted || !hasMoved) return null;
 
-  // Render ring only when opacity > 0.001 (i.e. not in a clickable state).
-  const ringVisible = ringOpacitySpring.get() > 0.001;
-
-  return (
-    <>
-      {ringVisible && (
-        <motion.div
-          aria-hidden
-          style={{
-            translateX: ringX,
-            translateY: ringY,
-            scale: ringScaleSpring,
-            opacity: ringOpacitySpring,
-            top: -14,
-            left: -14,
-          }}
-          className="pointer-events-none fixed z-[9999] h-7 w-7 rounded-full border border-white/35"
-        />
-      )}
-
-      <motion.div
-        aria-hidden
-        style={{
-          translateX: dotX,
-          translateY: dotY,
-          scale: dotScaleSpring,
-          backgroundColor: dotColorSpring,
-          top: -6,
-          left: -6,
-          boxShadow:
-            mode === "hover-project" && hoverImage
-              ? `0 0 18px rgba(${ACCENT_RGB},0.55)`
-              : `0 0 0 rgba(0,0,0,0)`,
-        }}
-        className="pointer-events-none fixed z-[9999] h-3 w-3 rounded-full"
-      />
-    </>
+  const cursorLayer = (
+    <div
+      aria-hidden
+      className="pointer-events-none fixed left-0 top-0 z-[99999] h-screen w-screen overflow-visible"
+      style={{ pointerEvents: "none", opacity: hasMoved ? 1 : 0 }}
+    >
+      <CursorDot x={dotX} y={dotY} />
+      {mode === "hover-project" && <CursorProjectPill x={pillX} y={pillY} />}
+      <CursorPreview x={previewX} y={previewY} />
+    </div>
   );
+
+  if (typeof document === "undefined" || !document.body) return null;
+
+  return createPortal(cursorLayer, document.body);
 }

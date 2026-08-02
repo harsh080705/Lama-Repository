@@ -3,7 +3,7 @@
 import { useLayoutEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useLenis } from "@/components/providers/SmoothScrollProvider";
+import { useLenis } from "@/context/SmoothScrollProvider";
 
 gsap.registerPlugin(ScrollTrigger);
 

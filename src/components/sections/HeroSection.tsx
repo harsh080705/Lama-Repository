@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 import { ArrowDown, Circle } from "lucide-react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { useLenis } from "@/context/SmoothScrollProvider";
-import { useCursor } from "@/context/CursorContext";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -22,7 +21,6 @@ const FADE_THRESHOLD = 150; // px of scroll past which the indicator fades
 
 function HeroScrollButton() {
   const lenis = useLenis();
-  const { setCursorMode, setCursorText } = useCursor();
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Opacity driven by scroll position; spring smooths the toggle.
@@ -67,14 +65,6 @@ function HeroScrollButton() {
       ref={buttonRef}
       type="button"
       onClick={onClick}
-      onPointerEnter={() => {
-        setCursorMode("hover-button");
-        setCursorText("Scroll");
-      }}
-      onPointerLeave={() => {
-        setCursorMode("default");
-        setCursorText("");
-      }}
       aria-label="Scroll to about"
       style={{
         opacity: opacitySpring,

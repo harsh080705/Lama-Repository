@@ -5,7 +5,6 @@ import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ArrowUpRight, Check } from "lucide-react";
 import type { Project } from "@/data/projects";
 import { useGSAPScroll } from "@/hooks/useGSAPScroll";
-import { useCursorHover } from "@/hooks/useCursorHover";
 
 interface MagneticLinkProps {
   href: string;
@@ -20,8 +19,6 @@ function MagneticLink({ href, label, external }: MagneticLinkProps) {
   const sx = useSpring(x, { stiffness: 200, damping: 15, mass: 0.4 });
   const sy = useSpring(y, { stiffness: 200, damping: 15, mass: 0.4 });
 
-  const hover = useCursorHover({ mode: "hover-link", text: label });
-
   const onMove = (e: React.PointerEvent<HTMLAnchorElement>) => {
     const el = ref.current;
     if (!el) return;
@@ -35,7 +32,6 @@ function MagneticLink({ href, label, external }: MagneticLinkProps) {
   const onLeave = () => {
     x.set(0);
     y.set(0);
-    hover.onPointerLeave();
   };
 
   return (
@@ -46,7 +42,6 @@ function MagneticLink({ href, label, external }: MagneticLinkProps) {
       rel={external ? "noreferrer" : undefined}
       style={{ x: sx, y: sy }}
       onPointerMove={onMove}
-      onPointerEnter={hover.onPointerEnter}
       onPointerLeave={onLeave}
       className="group inline-flex items-center gap-2 text-2xl md:text-3xl font-display font-medium uppercase tracking-tight"
     >
@@ -62,7 +57,6 @@ function MagneticLink({ href, label, external }: MagneticLinkProps) {
 function CopyEmail() {
   const [copied, setCopied] = useState(false);
   const email = "hello@example.com";
-  const hover = useCursorHover({ mode: "hover-button", text: "Copy" });
 
   const onCopy = async () => {
     try {
@@ -83,8 +77,6 @@ function CopyEmail() {
     <button
       type="button"
       onClick={onCopy}
-      onPointerEnter={hover.onPointerEnter}
-      onPointerLeave={hover.onPointerLeave}
       className="group relative inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-5 py-3 backdrop-blur-md transition-colors hover:bg-white/10"
     >
       <span className="font-mono text-sm md:text-base text-foreground/90">

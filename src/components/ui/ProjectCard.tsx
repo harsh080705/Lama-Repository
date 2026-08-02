@@ -22,14 +22,16 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project, onOpen, priority }: ProjectCardProps) {
   const cardRef = useRef<HTMLButtonElement>(null);
-  const hoverHandlers = useCursorHover({
+
+  // Cursor → hover-project pill. Label is dynamic per card; default text
+  // is the spec's "View Project" (rendered by the cursor when label is empty).
+  const cursor = useCursorHover({
     mode: "hover-project",
-    text: "View",
-    image: project.coverImage,
-    imageCaption: project.title,
+    projectLabel: `View ${project.title}`,
   });
 
-  // Preload every gallery URL as soon as the card mounts so the cursor
+  // Preload every gallery URL as soon as the card mounts so the card
+  // hover preview is decoded by the time the user actually hovers.
   // image preview is decoded by the time the user actually hovers.
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -77,11 +79,11 @@ export default function ProjectCard({ project, onOpen, priority }: ProjectCardPr
       type="button"
       onClick={onOpen}
       onPointerMove={onMove}
+      onPointerEnter={cursor.onPointerEnter}
       onPointerLeave={() => {
         onLeave();
-        hoverHandlers.onPointerLeave();
+        cursor.onPointerLeave();
       }}
-      onPointerEnter={hoverHandlers.onPointerEnter}
       style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
       whileTap={{ scale: 0.98 }}
       className="group relative block w-full overflow-hidden rounded-2xl border border-white/10 bg-surface text-left will-change-transform"

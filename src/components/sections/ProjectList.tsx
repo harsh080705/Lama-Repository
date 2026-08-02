@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useLenis } from "@/context/SmoothScrollProvider";
-import { useCursor } from "@/context/CursorContext";
+import { useCursorHover } from "@/hooks/useCursorHover";
 import { TechStackRow } from "@/components/ui/TechBadge";
 import { projects, type Project } from "@/data/projects";
 
@@ -80,7 +80,6 @@ function ProjectRow({
   onSelect: (project: Project) => void;
 }) {
   const lenis = useLenis();
-  const { setCursorMode, setCursorText } = useCursor();
   const [hovered, setHovered] = useState(false);
 
   const goToProject = useCallback(() => {
@@ -93,22 +92,31 @@ function ProjectRow({
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [lenis, project.id]);
 
+  // Cursor → hover-preview with the project's cover thumbnail + title caption.
+  // `project.coverImage` is the high-res JPG/PNG (see `src/data/projects.ts`);
+  // `project.image` is a legacy CSS-colour fallback used during load.
+  const cursor = useCursorHover({
+    mode: "hover-preview",
+    previewImage: project.coverImage,
+    previewCaption: project.title,
+  });
+
   const onEnter = () => {
     setHovered(true);
-    setCursorMode("hover-button");
-    setCursorText("Open");
   };
 
   const onLeave = () => {
     setHovered(false);
-    setCursorMode("default");
-    setCursorText("");
+    cursor.onPointerLeave();
   };
 
   return (
     <motion.li
-      onPointerEnter={onEnter}
-      onPointerLeave={onLeave}
+      onMouseEnter={() => {
+        onEnter();
+        cursor.onPointerEnter();
+      }}
+      onMouseLeave={onLeave}
       animate={{ y: hovered ? -2 : 0 }}
       transition={{ type: "spring", stiffness: 320, damping: 24 }}
       className="group relative overflow-hidden border-b border-white/10"
@@ -129,10 +137,17 @@ function ProjectRow({
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-accent/60"
       />
 
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => onSelect(project)}
-        className="relative block w-full px-1 py-5 text-left md:px-2 md:py-6"
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onSelect(project);
+          }
+        }}
+        className="relative block w-full cursor-pointer px-1 py-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 md:px-2 md:py-6"
         aria-expanded={hovered}
       >
         {/* Header row */}
@@ -181,7 +196,7 @@ function ProjectRow({
             </div>
           </div>
         </motion.div>
-      </button>
+      </div>
     </motion.li>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLenis } from "@/context/SmoothScrollProvider";
-import { useCursorHover } from "@/hooks/useCursorHover";
 import { cn } from "@/lib/cn";
 
 interface NavLink {
@@ -23,13 +22,10 @@ interface NavButtonProps {
 }
 
 function NavButton({ link, active, onClick }: NavButtonProps) {
-  const hover = useCursorHover({ mode: "hover-button", text: link.label });
   return (
     <button
       type="button"
       onClick={onClick}
-      onPointerEnter={hover.onPointerEnter}
-      onPointerLeave={hover.onPointerLeave}
       className={cn(
         "relative rounded-full px-4 py-1.5 text-xs uppercase tracking-[0.25em] transition-colors",
         active ? "text-background" : "text-foreground/70 hover:text-foreground",

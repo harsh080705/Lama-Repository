@@ -64,10 +64,17 @@ html.lenis body {
 }
 
 /* ── Kinetic cursor ──────────────────────────────────────────────────── */
-/* Only hide the native cursor while the kinetic cursor is mounted. Touch
-   devices never receive this class — see useCursorEnabled in CustomCursor. */
+/* Only hide the native cursor while the kinetic cursor is mounted.
+   Touch devices never receive this class — see useCursorEnabled in
+   CustomCursor.tsx. */
 html.cursor-kinetic-active,
-html.cursor-kinetic-active * {
+html.cursor-kinetic-active *,
+html.cursor-kinetic-active *::before,
+html.cursor-kinetic-active *::after,
+html.cursor-kinetic-active a,
+html.cursor-kinetic-active button,
+html.cursor-kinetic-active input,
+html.cursor-kinetic-active [role="button"] {
   cursor: none !important;
 }
 
