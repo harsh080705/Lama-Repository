@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useLenis } from "@/context/SmoothScrollProvider";
-import { useCursorHover } from "@/hooks/useCursorHover";
+import { useCursor } from "@/context/CursorContext";
 import { TechStackRow } from "@/components/ui/TechBadge";
 import { projects, type Project } from "@/data/projects";
 
@@ -81,6 +81,10 @@ function ProjectRow({
 }) {
   const lenis = useLenis();
   const [hovered, setHovered] = useState(false);
+  // Direct cursor API access — atomic setCursorMode + setPreviewImage
+  // per spec, so the thumbnail's `key` flips in a single React commit.
+  const { setCursorMode, setPreviewImage, setPreviewCaption, reset: resetCursor } =
+    useCursor();
 
   const goToProject = useCallback(() => {
     const target = `#project-${project.id}`;
@@ -92,31 +96,29 @@ function ProjectRow({
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [lenis, project.id]);
 
-  // Cursor → hover-preview with the project's cover thumbnail + title caption.
-  // `project.coverImage` is the high-res JPG/PNG (see `src/data/projects.ts`);
-  // `project.image` is a legacy CSS-colour fallback used during load.
-  const cursor = useCursorHover({
-    mode: "hover-preview",
-    previewImage: project.coverImage,
-    previewCaption: project.title,
-  });
-
-  const onEnter = () => {
+  // Atomic hover handlers — both state setters fire in the same React
+  // commit, so <CursorPreview>'s `key={previewImage}` flips immediately
+  // and AnimatePresence destroys the old <img> before the new one mounts.
+  // `project.coverImage` is the high-res JPG/PNG; `project.image` is a
+  // legacy CSS-colour fallback (not a URL), so we use coverImage here.
+  const onRowEnter = () => {
     setHovered(true);
+    setCursorMode("hover-preview");
+    setPreviewImage(project.coverImage);
+    setPreviewCaption(project.title);
   };
 
-  const onLeave = () => {
+  const onRowLeave = () => {
     setHovered(false);
-    cursor.onPointerLeave();
+    setCursorMode("default");
+    setPreviewImage(null);
+    setPreviewCaption("");
   };
 
   return (
     <motion.li
-      onMouseEnter={() => {
-        onEnter();
-        cursor.onPointerEnter();
-      }}
-      onMouseLeave={onLeave}
+      onMouseEnter={onRowEnter}
+      onMouseLeave={onRowLeave}
       animate={{ y: hovered ? -2 : 0 }}
       transition={{ type: "spring", stiffness: 320, damping: 24 }}
       className="group relative overflow-hidden border-b border-white/10"
@@ -147,7 +149,7 @@ function ProjectRow({
             onSelect(project);
           }
         }}
-        className="relative block w-full cursor-pointer px-1 py-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 md:px-2 md:py-6"
+        className="pointer-events-none relative block w-full cursor-pointer px-1 py-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 md:px-2 md:py-6"
         aria-expanded={hovered}
       >
         {/* Header row */}
@@ -206,8 +208,17 @@ export default function ProjectList({
 }: {
   onSelectProject: (project: Project) => void;
 }) {
+  // Safety net: if the pointer leaves the entire accordion for any reason
+  // (e.g. jumps between rows without crossing their inner div boundaries),
+  // explicitly reset the cursor so the hover-preview thumbnail doesn't
+  // get stuck on screen and follow the cursor into the grid below.
+  const { reset: resetCursor } = useCursor();
+
   return (
-    <ul className="mt-10 md:mt-14 rounded-2xl border border-white/10 bg-surface/60 p-2 md:p-4 backdrop-blur-sm">
+    <ul
+      onMouseLeave={() => resetCursor()}
+      className="mt-10 md:mt-14 rounded-2xl border border-white/10 bg-surface/60 p-2 md:p-4 backdrop-blur-sm"
+    >
       {projects.map((project) => (
         <ProjectRow
           key={project.id}

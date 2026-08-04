@@ -8,6 +8,7 @@ import ProjectModal from "@/components/ui/ProjectModal";
 import ProjectList from "@/components/sections/ProjectList";
 import { useGSAPScroll } from "@/hooks/useGSAPScroll";
 import { projects, projectCategories, type Project } from "@/data/projects";
+import { useCursor } from "@/context/CursorContext";
 import { cn } from "@/lib/cn";
 
 const HEADING = "Featured Work";
@@ -15,6 +16,7 @@ const SUBHEAD = "A small selection of recent builds — picked for craft, not vo
 
 export default function ProjectsSection() {
   useGSAPScroll();
+  const { setCursorMode } = useCursor();
 
   const [filter, setFilter] = useState<(typeof projectCategories)[number]>("All");
   const [active, setActive] = useState<Project | null>(null);
@@ -73,26 +75,35 @@ export default function ProjectsSection() {
           ))}
         </div>
 
-        {/* Project cards grid — DO NOT TOUCH. Each card wrapper carries an
-            id so list rows can scroll directly to it. */}
+        {/* Project cards grid — single hover owner. The outer wrapper
+            receives the cursor mode change so internal sub-elements can't
+            fire intermediate mouseleave events. The motion.div still owns
+            the entrance / exit animations via AnimatePresence + layout. */}
         <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
           <AnimatePresence mode="popLayout">
             {filtered.map((project, i) => (
-              <motion.div
+              <div
                 key={project.id}
                 id={`project-${project.id}`}
-                layout
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -16 }}
-                transition={{ duration: 0.6, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                onMouseEnter={() => setCursorMode("hover-project")}
+                onMouseLeave={() => setCursorMode("default")}
+                className="group relative cursor-none"
               >
-                <ProjectCard
-                  project={project}
-                  onOpen={() => setActive(project)}
-                  priority={i === 0}
-                />
-              </motion.div>
+                <motion.div
+                  layout
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -16 }}
+                  transition={{ duration: 0.6, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                  className="h-full"
+                >
+                  <ProjectCard
+                    project={project}
+                    onOpen={() => setActive(project)}
+                    priority={i === 0}
+                  />
+                </motion.div>
+              </div>
             ))}
           </AnimatePresence>
         </div>

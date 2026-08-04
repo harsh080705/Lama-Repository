@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLenis } from "@/context/SmoothScrollProvider";
+import { useCursorHover } from "@/hooks/useCursorHover";
 import { cn } from "@/lib/cn";
 
 interface NavLink {
@@ -22,10 +23,13 @@ interface NavButtonProps {
 }
 
 function NavButton({ link, active, onClick }: NavButtonProps) {
+  const hover = useCursorHover({ mode: "hover-button" });
   return (
     <button
       type="button"
       onClick={onClick}
+      onPointerEnter={hover.onPointerEnter}
+      onPointerLeave={hover.onPointerLeave}
       className={cn(
         "relative rounded-full px-4 py-1.5 text-xs uppercase tracking-[0.25em] transition-colors",
         active ? "text-background" : "text-foreground/70 hover:text-foreground",
@@ -92,7 +96,7 @@ export default function Header() {
 
   return (
     <header className="fixed inset-x-0 top-4 z-50 flex justify-center px-4 pointer-events-none">
-      <nav className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/10 bg-black/40 px-2 py-1.5 backdrop-blur-xl">
+      <nav className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/10 bg-black/60 px-3 py-2 shadow-lg backdrop-blur-md">
         {LINKS.map((link) => (
           <NavButton
             key={link.id}

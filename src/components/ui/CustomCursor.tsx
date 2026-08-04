@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import {
+  AnimatePresence,
   motion,
   useMotionValue,
   useSpring,
@@ -41,13 +42,15 @@ function CursorDot({ x, y }: { x: MotionValue<number>; y: MotionValue<number> })
 
   useEffect(() => {
     if (mode === "hover-button") {
-      scale.set(2.2);
+      scale.set(2.5);
     } else if (mode === "hover-project" || mode === "hover-preview") {
       scale.set(0);
     } else {
       scale.set(1);
     }
   }, [mode, scale]);
+
+  const isLime = mode === "hover-button";
 
   return (
     <motion.div
@@ -57,9 +60,14 @@ function CursorDot({ x, y }: { x: MotionValue<number>; y: MotionValue<number> })
         y,
         scale: scaleSpring,
         pointerEvents: "none",
-        backgroundColor: mode === "hover-button" ? ACCENT : DOT_COLOR,
+        backgroundColor: isLime ? ACCENT : DOT_COLOR,
+        // Subtle electric-lime glow on hover-button. Matches the
+        // accent colour at varying alpha for the agency feel.
+        boxShadow: isLime
+          ? "0 0 24px rgba(190, 242, 100, 0.55), 0 0 56px rgba(190, 242, 100, 0.25)"
+          : "none",
       }}
-      className="pointer-events-none h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+      className="pointer-events-none h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full"
     />
   );
 }
@@ -90,7 +98,7 @@ function CursorProjectPill({
         scale: scaleSpring,
         pointerEvents: "none",
       }}
-      className="pointer-events-none flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#bef264] text-center text-[11px] font-mono font-bold uppercase tracking-[0.25em] text-black shadow-xl"
+      className="pointer-events-none flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#bef264] text-center text-xs font-mono font-bold uppercase tracking-[0.25em] text-black shadow-xl"
     >
       <span>VIEW</span>
     </motion.div>
@@ -105,58 +113,44 @@ function CursorPreview({
   y: MotionValue<number>;
 }) {
   const { mode, previewImage, previewCaption } = useCursor();
-  const opacity = useMotionValue(0);
-  const opacitySpring = useSpring(opacity, { stiffness: 300, damping: 22 });
-  const scale = useMotionValue(0.85);
-  const scaleSpring = useSpring(scale, { stiffness: 300, damping: 22 });
 
-  useEffect(() => {
-    if (mode === "hover-preview" && previewImage) {
-      opacity.set(1);
-      scale.set(1);
-    } else {
-      opacity.set(0);
-      scale.set(0.85);
-    }
-  }, [mode, previewImage, opacity, scale]);
-
-  if (mode !== "hover-preview" || !previewImage) return null;
+  // `mode="wait"` ensures the previous thumbnail fully exits BEFORE the
+  // next one mounts. With `key={previewImage}` bound directly on the
+  // motion.div, React immediately destroys the old <img> the moment
+  // `previewImage` changes — no cached/stale pixel lingers between rows.
+  const isVisible = mode === "hover-preview" && Boolean(previewImage);
 
   return (
-    <motion.div
-      aria-hidden
-      style={{
-        x,
-        y,
-        opacity: opacitySpring,
-        scale: scaleSpring,
-        pointerEvents: "none",
-        top: 20,
-        left: 20,
-      }}
-      className="w-52 overflow-hidden rounded-xl border border-white/20 bg-black shadow-2xl"
-    >
-      <div className="relative h-36 w-full bg-black">
-        <Image
-          src={previewImage}
-          alt={previewCaption || "Project preview"}
-          fill
-          sizes="208px"
-          className="object-cover"
-        />
-      </div>
-      {previewCaption && (
-        <div className="border-t border-white/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/80">
-          {previewCaption}
-        </div>
+    <AnimatePresence mode="wait">
+      {isVisible && (
+        <motion.div
+          key={previewImage}
+          aria-hidden
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.92 }}
+          transition={{ duration: 0.12, ease: "easeOut" }}
+          style={{
+            x,
+            y,
+            pointerEvents: "none",
+          }}
+          className="pointer-events-none h-36 w-56 overflow-hidden rounded-xl border border-white/20 bg-black shadow-2xl"
+        >
+          <img
+            src={previewImage as string}
+            alt={previewCaption || "Project Preview"}
+            className="h-full w-full object-cover"
+          />
+        </motion.div>
       )}
-    </motion.div>
+    </AnimatePresence>
   );
 }
 
 export default function CustomCursor() {
   const enabled = useCursorEnabled();
-  const { mode } = useCursor();
+  const { mode, setCursorMode } = useCursor();
   const [hasMoved, setHasMoved] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -208,16 +202,99 @@ export default function CustomCursor() {
     };
   }, [enabled]);
 
+  /**
+   * Global "hover-button" detection. We attach a single delegated
+   * pointerover/out pair to `document` and inspect the closest clickable
+   * ancestor of the event target. This means we never have to add
+   * onMouseEnter to every <button> / <a> / filter pill / tech tag.
+   *
+   * `closest(CLICKABLE_SELECTOR)` walks up the DOM tree from the target,
+   * so a click on an `<svg>` inside a `<button>` still hits the button.
+   *
+   * `pointerover` / `pointerout` (not `mouseenter` / `mouseleave`) so we
+   * get event bubbling + the relatedTarget traversal needed for safe
+   * enter/leave detection across nested clickables.
+   */
+  useEffect(() => {
+    if (!enabled || typeof document === "undefined") return;
+
+    const CLICKABLE_SELECTOR =
+      "a, button, [role='button'], input, select, textarea, label, [data-cursor='button']";
+
+    const onOver = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (!target) return;
+      // Don't clobber explicit project / preview modes — those are
+      // owned by per-element handlers (ProjectRow, ProjectCard).
+      if (mode === "hover-project" || mode === "hover-preview") return;
+      if (target.closest(CLICKABLE_SELECTOR)) {
+        setCursorMode("hover-button");
+      }
+    };
+
+    const onOut = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      const related = event.relatedTarget as Element | null;
+      if (!target) return;
+      // Same carve-out — explicit project / preview handlers own their leave.
+      if (mode === "hover-project" || mode === "hover-preview") return;
+      // Only reset if both the target AND the related target are
+      // outside clickables — otherwise we're just moving between two
+      // buttons and the hover state should persist.
+      const fromClickable = target.closest(CLICKABLE_SELECTOR);
+      const toClickable = related ? related.closest(CLICKABLE_SELECTOR) : null;
+      if (fromClickable && !toClickable) {
+        setCursorMode("default");
+      }
+    };
+
+    document.addEventListener("pointerover", onOver);
+    document.addEventListener("pointerout", onOut);
+
+    return () => {
+      document.removeEventListener("pointerover", onOver);
+      document.removeEventListener("pointerout", onOut);
+    };
+  }, [enabled, setCursorMode, mode]);
+
   if (!enabled || !mounted || !hasMoved) return null;
 
   const cursorLayer = (
     <div
       aria-hidden
-      className="pointer-events-none fixed left-0 top-0 z-[99999] h-screen w-screen overflow-visible"
-      style={{ pointerEvents: "none", opacity: hasMoved ? 1 : 0 }}
+      className="pointer-events-none overflow-visible"
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        zIndex: 9999,
+        pointerEvents: "none",
+        opacity: hasMoved ? 1 : 0,
+        width: "100vw",
+        height: "100vh",
+      }}
     >
       <CursorDot x={dotX} y={dotY} />
-      {mode === "hover-project" && <CursorProjectPill x={pillX} y={pillY} />}
+      <AnimatePresence>
+        {mode === "hover-project" && (
+          <motion.div
+            key="view-pill"
+            aria-hidden
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 28 }}
+            style={{
+              x: pillX,
+              y: pillY,
+              pointerEvents: "none",
+            }}
+            className="pointer-events-none flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#bef264] text-xs font-mono font-bold uppercase tracking-wider text-black shadow-xl"
+          >
+            VIEW
+          </motion.div>
+        )}
+      </AnimatePresence>
       <CursorPreview x={previewX} y={previewY} />
     </div>
   );

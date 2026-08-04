@@ -69,8 +69,21 @@ export function useCursorHover({
       window.clearTimeout(leaveTimer.current);
     }
 
+    // Only clear the fields THIS hook owns. Calling the global `reset()`
+    // here clobbers any sibling enter that just set a different mode
+    // (e.g. user hovers project card A → moves to project card B without
+    // crossing the gap, the leave on A fires first and would otherwise
+    // wipe B's hover-project state). The setCursorMode("default") clears
+    // the visual cursor, and re-entering will repopulate the fields.
+    const clear = () => {
+      setCursorMode("default");
+      if (previewImage !== undefined) setPreviewImage(null);
+      if (previewCaption !== undefined) setPreviewCaption("");
+      if (projectLabel !== undefined) setProjectLabel("");
+    };
+
     if (!bridge) {
-      reset();
+      clear();
       return;
     }
 
@@ -78,9 +91,19 @@ export function useCursorHover({
     leaveTimer.current = window.setTimeout(() => {
       if (currentToken !== token.current) return;
       leaveTimer.current = null;
-      reset();
+      clear();
     }, bridgeWindowMs);
-  }, [bridge, bridgeWindowMs, reset]);
+  }, [
+    bridge,
+    bridgeWindowMs,
+    previewImage,
+    previewCaption,
+    projectLabel,
+    setCursorMode,
+    setPreviewImage,
+    setPreviewCaption,
+    setProjectLabel,
+  ]);
 
   return { onPointerEnter: onEnter, onPointerLeave: onLeave };
 }
