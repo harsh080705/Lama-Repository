@@ -80,14 +80,26 @@ function CursorProjectPill({
   y: MotionValue<number>;
 }) {
   const { mode } = useCursor();
-  const scale = useMotionValue(0.6);
-  const scaleSpring = useSpring(scale, { stiffness: 320, damping: 26, mass: 0.4 });
+
+  // Spec: spring-driven scale + opacity so the pill springs in when
+  // `hover-project` activates and springs out when it releases. The
+  // outer motion.div stays mounted during the spring-out so the
+  // exit animation has something to animate.
+  const scale = useMotionValue(0.15);
+  const scaleSpring = useSpring(scale, { stiffness: 350, damping: 25 });
+
+  const opacity = useMotionValue(0);
+  const opacitySpring = useSpring(opacity, { stiffness: 350, damping: 25 });
 
   useEffect(() => {
-    scale.set(mode === "hover-project" ? 1 : 0.6);
-  }, [mode, scale]);
-
-  if (mode !== "hover-project") return null;
+    if (mode === "hover-project") {
+      scale.set(1);
+      opacity.set(1);
+    } else {
+      scale.set(0.15);
+      opacity.set(0);
+    }
+  }, [mode, scale, opacity]);
 
   return (
     <motion.div
@@ -96,11 +108,30 @@ function CursorProjectPill({
         x,
         y,
         scale: scaleSpring,
+        opacity: opacitySpring,
         pointerEvents: "none",
+        width: 80,
+        height: 80,
       }}
-      className="pointer-events-none flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#bef264] text-center text-xs font-mono font-bold uppercase tracking-[0.25em] text-black shadow-xl"
+      // Glassmorphic — translucent lime with backdrop blur so the
+      // underlying card image / text is visible through the pill. Lime
+      // text + drop-shadow keeps "VIEW" crisp against any backdrop.
+      className="pointer-events-none flex items-center justify-center rounded-full bg-[#bef264]/25 backdrop-blur-md border border-[#bef264]/40 font-semibold text-xs uppercase tracking-wider text-[#bef264] shadow-lg"
     >
-      <span>VIEW</span>
+      <AnimatePresence>
+        {mode === "hover-project" && (
+          <motion.span
+            key="view-label"
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            transition={{ duration: 0.12 }}
+            className="drop-shadow-md select-none"
+          >
+            VIEW
+          </motion.span>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -275,26 +306,10 @@ export default function CustomCursor() {
       }}
     >
       <CursorDot x={dotX} y={dotY} />
-      <AnimatePresence>
-        {mode === "hover-project" && (
-          <motion.div
-            key="view-pill"
-            aria-hidden
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 400, damping: 28 }}
-            style={{
-              x: pillX,
-              y: pillY,
-              pointerEvents: "none",
-            }}
-            className="pointer-events-none flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#bef264] text-xs font-mono font-bold uppercase tracking-wider text-black shadow-xl"
-          >
-            VIEW
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* CursorProjectPill self-manages its mount lifecycle via an
+          internal <AnimatePresence>, so the glassmorphic pill springs
+          in on hover-project and springs out on default. */}
+      <CursorProjectPill x={pillX} y={pillY} />
       <CursorPreview x={previewX} y={previewY} />
     </div>
   );
