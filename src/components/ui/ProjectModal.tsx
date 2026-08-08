@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight, Pause, Play, X } from "lucide-react";
 import { useLenis } from "@/context/SmoothScrollProvider";
 import type { Project } from "@/data/projects";
+import ScrambleText from "@/components/ui/ScrambleText";
 
 interface ProjectModalProps {
   project: Project | null;
@@ -210,9 +211,14 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
                   {project.tags.map((t) => (
                     <span
                       key={t}
-                      className="rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-xs uppercase tracking-wider text-foreground/80"
+                      className="inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-xs uppercase tracking-wider text-foreground/80"
                     >
-                      {t}
+                      <ScrambleText
+                        text={t}
+                        triggerOnHover
+                        speed={45}
+                        scrambleSpeed={24}
+                      />
                     </span>
                   ))}
                 </div>

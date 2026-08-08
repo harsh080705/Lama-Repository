@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { useLenis } from "@/context/SmoothScrollProvider";
 import { useCursor } from "@/context/CursorContext";
 import { TechStackRow } from "@/components/ui/TechBadge";
+import TextRoll from "@/components/ui/TextRoll";
 import { projects, type Project } from "@/data/projects";
 
 /**
@@ -154,13 +155,13 @@ function ProjectRow({
       >
         {/* Header row */}
         <div className="flex w-full items-baseline justify-between gap-6">
-          <span
+          <TextRoll
             className={`font-display text-2xl md:text-4xl font-medium uppercase tracking-tight transition-colors ${
               hovered ? "text-accent" : "text-foreground"
             }`}
           >
             {project.title}
-          </span>
+          </TextRoll>
           <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
             {project.year} / {project.category}
           </span>

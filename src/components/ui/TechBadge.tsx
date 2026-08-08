@@ -24,6 +24,7 @@ import {
 } from "simple-icons";
 
 import type { Project } from "@/data/projects";
+import ScrambleText from "@/components/ui/ScrambleText";
 
 /**
  * Map a free-form project tag (e.g. "React", "Next.js") to a small
@@ -121,7 +122,13 @@ export default function TechBadge({
           <SimpleIcon svg={icon.svg} className="h-3.5 w-3.5" />
         )}
       </span>
-      <span>{tag}</span>
+      <ScrambleText
+        text={tag}
+        triggerOnHover
+        speed={45}
+        scrambleSpeed={24}
+        className="font-mono tracking-[0.2em]"
+      />
     </span>
   );
 }

@@ -6,6 +6,7 @@ import { ArrowUpRight, Check } from "lucide-react";
 import type { Project } from "@/data/projects";
 import { useGSAPScroll } from "@/hooks/useGSAPScroll";
 import { useCursorHover } from "@/hooks/useCursorHover";
+import ScrambleText from "@/components/ui/ScrambleText";
 
 interface MagneticLinkProps {
   href: string;
@@ -185,8 +186,9 @@ export default function ContactSection() {
                 Local time
               </span>
               <span className="font-mono text-2xl md:text-3xl">
-                PUNE, IN —{" "}
-                <span className="text-accent">{time}</span> IST
+                <ScrambleText text="PUNE, IN —" speed={45} scrambleSpeed={24} />{" "}
+                <span className="text-accent">{time}</span>{" "}
+                <ScrambleText text="IST" speed={45} scrambleSpeed={24} />
               </span>
             </div>
 

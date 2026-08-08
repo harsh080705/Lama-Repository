@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAPScroll } from "@/hooks/useGSAPScroll";
 import SplitTextReveal from "@/components/ui/SplitTextReveal";
+import ScrambleText from "@/components/ui/ScrambleText";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -93,7 +94,8 @@ export default function AboutSection() {
 
         <div className="grid grid-cols-12 gap-6 md:gap-10">
           <h2 className="col-span-12 md:col-span-4 font-display text-sm uppercase tracking-[0.25em] text-muted">
-            (01) <br /> Who I am
+            <ScrambleText text="(01)" speed={45} scrambleSpeed={24} /> <br />{" "}
+            Who I am
           </h2>
 
           <div className="col-span-12 md:col-span-8">
@@ -107,7 +109,8 @@ export default function AboutSection() {
 
         <div className="mt-24 md:mt-40 grid grid-cols-12 gap-6 md:gap-10">
           <h2 className="col-span-12 md:col-span-4 font-display text-sm uppercase tracking-[0.25em] text-muted">
-            (02) <br /> Stack
+            <ScrambleText text="(02)" speed={45} scrambleSpeed={24} /> <br />{" "}
+            Stack
           </h2>
 
           <ul className="col-span-12 md:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6">
@@ -120,7 +123,7 @@ export default function AboutSection() {
                   {s.label}
                 </span>
                 <span className="text-sm md:text-base font-mono text-foreground/90 text-right">
-                  {s.value}
+                  <ScrambleText text={s.value} speed={45} scrambleSpeed={24} />
                 </span>
               </li>
             ))}

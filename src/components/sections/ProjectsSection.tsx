@@ -11,6 +11,7 @@ import { useGSAPScroll } from "@/hooks/useGSAPScroll";
 import { projects, projectCategories, type Project } from "@/data/projects";
 import { useCursor } from "@/context/CursorContext";
 import { cn } from "@/lib/cn";
+import ScrambleText from "@/components/ui/ScrambleText";
 
 const HEADING = "Featured Work";
 const SUBHEAD = "A small selection of recent builds — picked for craft, not volume.";
@@ -39,7 +40,7 @@ export default function ProjectsSection() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-12 md:mb-20 flex items-center gap-4 text-xs uppercase tracking-[0.3em] text-muted">
           <span className="h-px w-10 bg-white/30" />
-          (04) Featured Work
+          <ScrambleText text="(04) Featured Work" speed={45} scrambleSpeed={24} />
         </div>
 
         <div className="grid grid-cols-12 gap-6 md:gap-10">
