@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLenis } from "@/context/SmoothScrollProvider";
 import { useCursorHover } from "@/hooks/useCursorHover";
 import { cn } from "@/lib/cn";
+import TextRoll from "@/components/ui/TextRoll";
 
 interface NavLink {
   id: string;
@@ -38,7 +39,9 @@ function NavButton({ link, active, onClick }: NavButtonProps) {
       {active && (
         <span className="absolute inset-0 -z-10 rounded-full bg-foreground" />
       )}
-      {link.label}
+      <TextRoll className="uppercase tracking-[0.25em]">
+        {link.label}
+      </TextRoll>
     </button>
   );
 }
