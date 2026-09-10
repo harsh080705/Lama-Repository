@@ -1,141 +1,99 @@
 # 🚀 Harsh — Creative Developer Portfolio
 
-An agency-grade 3D portfolio built as an immersive, single scroll-driven WebGL experience. Featuring an interactive 3D hero 🎨, kinetic cursor 🎯, buttery Lenis smooth scroll ⚡, and GSAP reveals — all powered by a single optimized `requestAnimationFrame` loop.
+An agency-grade 3D portfolio built as an immersive, single scroll-driven WebGL experience. Featuring an interactive 3D hero 🎨, kinetic cursor 🎯, buttery Lenis smooth scroll ⚡, and GSAP reveal animations.
 
 > 🌐 **Live Demo:** [https://harsh080705.github.io/Lama-Repository/](https://harsh080705.github.io/Lama-Repository/)
 
 ---
 
-## Tech stack
+## Tech Stack
 
 | Layer | Choice |
 |---|---|
 | Framework | [Next.js 16](https://nextjs.org) (App Router, Turbopack) |
 | Language | [TypeScript](https://www.typescriptlang.org) |
-| Styling | [Tailwind CSS v4](https://tailwindcss.com) (`@theme` driven, no `tailwind.config.js`) |
+| Styling | [Tailwind CSS v4](https://tailwindcss.com) (`@theme` driven) |
 | 3D | [Three.js](https://threejs.org) + [`@react-three/fiber`](https://r3f.docs.pmnd.rs) + [`@react-three/drei`](https://github.com/pmndrs/drei) |
-| Smooth scroll | [Lenis](https://lenis.darkroom.engineering) |
-| Scroll-driven animation | [GSAP](https://gsap.com) + `ScrollTrigger` |
-| UI motion | [Framer Motion](https://www.framer.com/motion) |
+| Smooth Scroll | [Lenis](https://lenis.darkroom.engineering) |
+| Animations | [GSAP](https://gsap.com) + `ScrollTrigger` + [Framer Motion](https://www.framer.com/motion) |
 | Icons | [Lucide](https://lucide.dev) |
-| Class merging | `clsx` + `tailwind-merge` |
 
-### Architecture highlights
+### Key Features
 
-- **Single shared RAF loop** — `gsap.ticker` drives Lenis, which in turn re-measures every `ScrollTrigger`. Zero drift.
-- **Capability-tier WebGL** — `useCapabilityTier()` detects mobile / DPR / hardware concurrency and tunes `MeshTransmissionMaterial.samples`, geometry density and IBL on the fly. Mid-range phones get `samples: 3, resolution: 256`; high-end desktops get full glass.
-- **WebGL context-loss recovery** — `webglcontextlost` / `webglcontextrestored` listeners attached in `Canvas onCreated` so a GPU reset never freezes the canvas.
-- **Kinetic cursor** — `CursorContext` + Framer Motion springs; auto-disables on touch devices and under `prefers-reduced-motion`.
-- **Section composition** — fixed `<HeroCanvas />` pinned to the viewport, content layers (`HeroSection`, `AboutSection`, `ProjectsSection`, `ContactSection`) scroll above it.
-- **ErrorBoundary-wrapped scene** — every `<Suspense>` falls back to a static wireframe torus if `<Environment preset="city">` fails to fetch.
+- **Single RAF loop** — `gsap.ticker` syncs Lenis + ScrollTrigger. Zero drift.
+- **Adaptive WebGL** — Auto-detects device capability and tunes performance (samples, geometry density, IBL)
+- **Context-loss recovery** — GPU reset never freezes the canvas
+- **Kinetic cursor** — Spring physics with touch auto-disable and `prefers-reduced-motion` support
+- **Accessibility-first** — Full keyboard navigation, focus styles, motion preferences respected
 
 ---
 
-## Folder structure
+## Folder Structure
 
 ```
 src/
-├── app/                     ← Next.js App Router entry
+├── app/
 │   ├── globals.css          ← Tailwind v4 @theme + Lenis hooks
-│   ├── layout.tsx           ← CursorProvider → SmoothScrollProvider → CustomCursor
-│   └── page.tsx             ← Page composition
+│   ├── layout.tsx           ← Providers (Cursor, SmoothScroll)
+│   └── page.tsx
 ├── components/
-│   ├── canvas/              ← R3F <Canvas> wrappers + 3D objects
-│   │   ├── HeroCanvas.tsx
-│   │   ├── GlassKnot.tsx
-│   │   └── WebGLErrorBoundary.tsx
-│   ├── sections/            ← Composed page sections
-│   │   ├── HeroSection.tsx
-│   │   ├── AboutSection.tsx
-│   │   ├── ProjectsSection.tsx
-│   │   └── ContactSection.tsx
-│   └── ui/                  ← Reusable HTML primitives
-│       ├── CustomCursor.tsx
-│       ├── Header.tsx
-│       ├── ProjectCard.tsx
-│       ├── ProjectModal.tsx
-│       └── SplitTextReveal.tsx
+│   ├── canvas/              ← R3F Canvas + 3D objects
+│   ├── sections/            ← Page sections
+│   └── ui/                  ← Reusable components
 ├── context/
-│   ├── CursorContext.tsx
-│   └── SmoothScrollProvider.tsx
 ├── data/
-│   └── projects.ts          ← Typed project data (cover images, gallery, video clips)
 ├── hooks/
-│   ├── useCapabilityTier.ts
-│   ├── useCursorHover.ts
-│   ├── useGSAPScroll.ts
-│   ├── useMediaQuery.ts
-│   └── useMouseParallax.ts
 └── lib/
-    └── cn.ts
 ```
 
 ---
 
-## Getting started
+## Quick Start
 
-### Prerequisites
+### Requirements
+- Node.js **20.x+** (Next.js 16 requires `>=20.18`)
 
-- Node.js **20.x** or newer (Next.js 16 requires `>=20.18`)
-- npm, pnpm, or yarn
-
-### Install & run
-
+### Setup
 ```bash
-# 1. Install dependencies
 npm install
-
-# 2. Start the dev server (Turbopack)
-npm run dev
-# → http://localhost:3000
-
-# 3. Production build
-npm run build
-npm run start
+npm run dev          # http://localhost:3000
+npm run build        # Production build
+npm run start        # Serve production
 ```
 
-### Environment
-
-No environment variables are required for local development. If you later add analytics or a CMS, drop them into `.env.local` (already git-ignored):
-
+### Environment (Optional)
 ```bash
-# .env.local — never commit this file
+# .env.local — git-ignored
 NEXT_PUBLIC_SITE_URL=https://your-domain.com
 ```
 
 ---
 
-## Scripts
+## Deploy
 
-| Command | Purpose |
-|---|---|
-| `npm run dev` | Start the dev server with Turbopack + HMR |
-| `npm run build` | Production build into `.next/` |
-| `npm run start` | Serve the production build |
-| `npm run lint` | (When configured) ESLint check |
+- **Vercel** — Zero config (recommended)
+- **Netlify** — Requires adapter
+- **Node.js host** — `npm run build && npm run start`
 
 ---
 
-## Deployment
+## Browser Support
 
-The project is a standard Next.js App Router build and deploys out-of-the-box to:
-
-- [Vercel](https://vercel.com) — recommended, zero config
-- [Netlify](https://www.netlify.com) — adapter required
-- Any Node.js host — `npm run build && npm run start`
-
-Make sure `next.config.ts` image `remotePatterns` includes any CDN you point the `<Image>` components at.
+- Chrome/Edge 90+
+- Firefox 90+
+- Safari 15+ (iOS 15+)
+- Modern WebGL 2.0 browsers
 
 ---
 
-## Accessibility
+## Troubleshooting
 
-- `prefers-reduced-motion` respected end-to-end — kinetic cursor, ScrollTriggers, parallax and reveals all short-circuit to a static final state.
-- Kinetic cursor auto-disables on touch / coarse pointers.
-- Native focus styles preserved (no global `outline: none`).
+**WebGL context lost?** → Auto-recovery built-in (`WebGLErrorBoundary`)  
+**Scroll stuttering?** → Check `SmoothScrollProvider` in `layout.tsx`  
+**Slow on mobile?** → Capability detection auto-optimizes; check DevTools
 
 ---
 
 ## License
 
-MIT — see `LICENSE` if present. All third-party assets (Unsplash thumbnails, demo videos) are placeholder content and must be replaced before shipping to production.
+MIT — See `LICENSE`. Demo assets (Unsplash images, videos) are placeholders; replace before production.
