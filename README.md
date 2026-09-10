@@ -2,7 +2,7 @@
 
 An agency-grade 3D portfolio inspired by [Lama Lama](https://lama-lama.com), built as a single immersive scroll-driven experience. The 3D WebGL hero, kinetic cursor, buttery Lenis scroll, GSAP-driven reveals and case-study modal all share a single requestAnimationFrame loop — no stutter, no jank.
 
-> **Live demo:** _coming soon_
+> **Live demo:** [https://harsh080705.github.io/Lama-Repository/](https://harsh080705.github.io/Lama-Repository/)
 
 ---
 
