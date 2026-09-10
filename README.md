@@ -1,8 +1,8 @@
-# Harsh — Creative Developer Portfolio
+# 🚀 Harsh — Creative Developer Portfolio
 
-An agency-grade 3D portfolio inspired by [Lama Lama](https://lama-lama.com), built as a single immersive scroll-driven experience. The 3D WebGL hero, kinetic cursor, buttery Lenis scroll, GSAP-driven reveals and case-study modal all share a single requestAnimationFrame loop — no stutter, no jank.
+An agency-grade 3D portfolio built as an immersive, single scroll-driven WebGL experience. Featuring an interactive 3D hero 🎨, kinetic cursor 🎯, buttery Lenis smooth scroll ⚡, and GSAP reveals — all powered by a single optimized `requestAnimationFrame` loop.
 
-> **Live demo:** [https://harsh080705.github.io/Lama-Repository/](https://harsh080705.github.io/Lama-Repository/)
+> 🌐 **Live Demo:** [https://harsh080705.github.io/Lama-Repository/](https://harsh080705.github.io/Lama-Repository/)
 
 ---
 
