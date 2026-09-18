@@ -1,86 +1,78 @@
-# Harsh | Full-Stack Developer & Creative Technologist
+# 🌟 Harsh | Full-Stack Developer & Creative Technologist Portfolio
 
-A modern, immersive portfolio and developer showcase built with Next.js, TypeScript, Tailwind CSS, Three.js, Framer Motion, and GSAP. This project is designed to highlight frontend engineering, product design, 3D interaction, performance optimization, and UI/UX craft in a recruiter-friendly, visually compelling format.
+![Next.js 16](https://img.shields.io/badge/Next.js-16.0-000000?style=flat-square&logo=nextdotjs)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript)
+![Tailwind CSS v4](https://img.shields.io/badge/Tailwind-v4.0-06B6D4?style=flat-square&logo=tailwindcss)
+![Three.js](https://img.shields.io/badge/Three.js-WebGL-000000?style=flat-square&logo=three.js)
+![Framer Motion](https://img.shields.io/badge/Framer_Motion-GSAP-0055FF?style=flat-square&logo=framer)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
-> Live Demo: https://harsh080705.github.io/Lama-Repository/
-> GitHub: https://github.com/harsh080705/Lama-Repository
-
-## ATS-Friendly Summary
-
-Full-stack developer portfolio focused on React, Next.js, TypeScript, UI/UX, WebGL, animation systems, and high-performance frontend architecture. Built to showcase technical depth, visual storytelling, and modern product engineering skills for product, frontend, and design-focused roles.
-
-## Core Skills Demonstrated
-
-- Frontend Development
-- React.js / Next.js
-- TypeScript
-- Tailwind CSS
-- Three.js / React Three Fiber
-- GSAP / Framer Motion
-- Accessibility
-- Performance Optimization
-- UI/UX Engineering
-- Responsive Design
-- Creative Development
-
-## Key Features
-
-- Immersive single-page 3D portfolio experience
-- WebGL-powered hero and interactive visual scenes
-- Smooth scrolling with Lenis
-- Motion-rich storytelling with GSAP
-- Kinetic cursor and reduced-motion support
-- Accessibility-first interaction patterns
-- Production-ready Next.js App Router setup
-
-## Tech Stack
-
-| Layer | Technology |
-| --- | --- |
-| Framework | Next.js 16 |
-| Language | TypeScript |
-| Styling | Tailwind CSS v4 |
-| 3D | Three.js, @react-three/fiber, @react-three/drei |
-| Motion | GSAP, Framer Motion |
-| Scroll | Lenis |
-| Icons | Lucide |
-
-## Project Structure
-
-```bash
-src/
-├── app/
-├── components/
-├── context/
-├── data/
-├── hooks/
-├── lib/
-└── ...
-```
-
-## Quick Start
-
-```bash
-npm install
-npm run dev
-```
-
-Open: http://localhost:3000
-
-## Deployment
-
-- Vercel (recommended)
-- Netlify
-- Node.js hosting
-
-## Why This Project Matters for ATS
-
-This repository positions the developer as someone who can combine product thinking, strong visual execution, and modern frontend engineering. It highlights experience in animation systems, rendering pipelines, and polished user interfaces—skills that are highly relevant for frontend, full-stack, and design-engineering roles.
-
-## License
-
-MIT
+> An immersive 3D developer portfolio and interactive showcase built with Next.js 16 App Router, TypeScript, Tailwind CSS v4, Three.js (React Three Fiber), GSAP, and Framer Motion.
 
 ---
 
-Built for portfolio visibility, recruiter scanability, and modern frontend storytelling.
+## 🎯 ATS & Resume Highlights (Copy & Paste for Resume)
+
+> - **Architected Immersive 3D Developer Portfolio Application** using **Next.js 16 (App Router), TypeScript, and Tailwind CSS v4**, delivering sub-second page loads and 60fps rendering.
+> - **Engineered WebGL Interactive Scenes & Custom Shaders** utilizing **Three.js** and **React Three Fiber**, optimizing GPU draw calls and canvas frame rates.
+> - **Constructed Fluid Animation Pipeline** integrating **GSAP, Framer Motion**, and **Lenis smooth scroll**, featuring full accessibility compliance (`prefers-reduced-motion`).
+
+---
+
+## 🌟 Key Features
+
+- 🌐 **Interactive 3D Experience**: WebGL-powered hero canvas and interactive 3D elements.
+- ⚡ **Next.js 16 App Router**: Server-side rendering (SSR), static site generation (SSG), and optimized route bundling.
+- 🎨 **Tailwind CSS v4 Styling**: Utility-first responsive design system tailored for high-DPI viewports.
+- 🎬 **Motion & Animation Pipeline**: Seamless scroll-driven storytelling via GSAP, Framer Motion, and Lenis.
+- ♿ **Accessibility & Performance**: Built with semantic HTML, keyboard focus management, and reduced-motion options.
+
+---
+
+## 🛠️ Tech Stack & Architecture
+
+| Layer | Technology | Purpose |
+|:---|:---|:---|
+| **Framework** | Next.js 16 (App Router) | SSR/SSG & Route Architecture |
+| **Language** | TypeScript | End-to-end type safety |
+| **Styling** | Tailwind CSS v4 | Responsive utility styling |
+| **3D Rendering** | Three.js, `@react-three/fiber`, `@react-three/drei` | WebGL canvas & 3D scene execution |
+| **Animation Engine** | GSAP, Framer Motion, Lenis | Scroll triggers & spring physics |
+
+---
+
+## 📁 Project Structure
+
+```
+Lama-Repository/
+├── src/
+│   ├── app/          # Next.js App Router pages & layouts
+│   ├── components/   # React & 3D Canvas UI components
+│   ├── context/      # Theme & animation state providers
+│   ├── hooks/        # Custom React & WebGL hooks
+│   └── lib/          # Utilities & animation configurations
+└── README.md
+```
+
+---
+
+## 🚀 Quick Start
+
+```bash
+git clone https://github.com/harsh080705/Lama-Repository.git
+cd Lama-Repository
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+Open `http://localhost:3000` to view the application.
+
+---
+
+## 📝 License
+
+Distributed under the **MIT License**. See `LICENSE` for details.
