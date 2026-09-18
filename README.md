@@ -1,99 +1,86 @@
-# 🚀 Harsh — Creative Developer Portfolio
+# Harsh | Full-Stack Developer & Creative Technologist
 
-An agency-grade 3D portfolio built as an immersive, single scroll-driven WebGL experience. Featuring an interactive 3D hero 🎨, kinetic cursor 🎯, buttery Lenis smooth scroll ⚡, and GSAP reveal animations.
+A modern, immersive portfolio and developer showcase built with Next.js, TypeScript, Tailwind CSS, Three.js, Framer Motion, and GSAP. This project is designed to highlight frontend engineering, product design, 3D interaction, performance optimization, and UI/UX craft in a recruiter-friendly, visually compelling format.
 
-> 🌐 **Live Demo:** [https://harsh080705.github.io/Lama-Repository/](https://harsh080705.github.io/Lama-Repository/)
+> Live Demo: https://harsh080705.github.io/Lama-Repository/
+> GitHub: https://github.com/harsh080705/Lama-Repository
 
----
+## ATS-Friendly Summary
+
+Full-stack developer portfolio focused on React, Next.js, TypeScript, UI/UX, WebGL, animation systems, and high-performance frontend architecture. Built to showcase technical depth, visual storytelling, and modern product engineering skills for product, frontend, and design-focused roles.
+
+## Core Skills Demonstrated
+
+- Frontend Development
+- React.js / Next.js
+- TypeScript
+- Tailwind CSS
+- Three.js / React Three Fiber
+- GSAP / Framer Motion
+- Accessibility
+- Performance Optimization
+- UI/UX Engineering
+- Responsive Design
+- Creative Development
+
+## Key Features
+
+- Immersive single-page 3D portfolio experience
+- WebGL-powered hero and interactive visual scenes
+- Smooth scrolling with Lenis
+- Motion-rich storytelling with GSAP
+- Kinetic cursor and reduced-motion support
+- Accessibility-first interaction patterns
+- Production-ready Next.js App Router setup
 
 ## Tech Stack
 
-| Layer | Choice |
-|---|---|
-| Framework | [Next.js 16](https://nextjs.org) (App Router, Turbopack) |
-| Language | [TypeScript](https://www.typescriptlang.org) |
-| Styling | [Tailwind CSS v4](https://tailwindcss.com) (`@theme` driven) |
-| 3D | [Three.js](https://threejs.org) + [`@react-three/fiber`](https://r3f.docs.pmnd.rs) + [`@react-three/drei`](https://github.com/pmndrs/drei) |
-| Smooth Scroll | [Lenis](https://lenis.darkroom.engineering) |
-| Animations | [GSAP](https://gsap.com) + `ScrollTrigger` + [Framer Motion](https://www.framer.com/motion) |
-| Icons | [Lucide](https://lucide.dev) |
+| Layer | Technology |
+| --- | --- |
+| Framework | Next.js 16 |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 |
+| 3D | Three.js, @react-three/fiber, @react-three/drei |
+| Motion | GSAP, Framer Motion |
+| Scroll | Lenis |
+| Icons | Lucide |
 
-### Key Features
+## Project Structure
 
-- **Single RAF loop** — `gsap.ticker` syncs Lenis + ScrollTrigger. Zero drift.
-- **Adaptive WebGL** — Auto-detects device capability and tunes performance (samples, geometry density, IBL)
-- **Context-loss recovery** — GPU reset never freezes the canvas
-- **Kinetic cursor** — Spring physics with touch auto-disable and `prefers-reduced-motion` support
-- **Accessibility-first** — Full keyboard navigation, focus styles, motion preferences respected
-
----
-
-## Folder Structure
-
-```
+```bash
 src/
 ├── app/
-│   ├── globals.css          ← Tailwind v4 @theme + Lenis hooks
-│   ├── layout.tsx           ← Providers (Cursor, SmoothScroll)
-│   └── page.tsx
 ├── components/
-│   ├── canvas/              ← R3F Canvas + 3D objects
-│   ├── sections/            ← Page sections
-│   └── ui/                  ← Reusable components
 ├── context/
 ├── data/
 ├── hooks/
-└── lib/
+├── lib/
+└── ...
 ```
-
----
 
 ## Quick Start
 
-### Requirements
-- Node.js **20.x+** (Next.js 16 requires `>=20.18`)
-
-### Setup
 ```bash
 npm install
-npm run dev          # http://localhost:3000
-npm run build        # Production build
-npm run start        # Serve production
+npm run dev
 ```
 
-### Environment (Optional)
-```bash
-# .env.local — git-ignored
-NEXT_PUBLIC_SITE_URL=https://your-domain.com
-```
+Open: http://localhost:3000
 
----
+## Deployment
 
-## Deploy
+- Vercel (recommended)
+- Netlify
+- Node.js hosting
 
-- **Vercel** — Zero config (recommended)
-- **Netlify** — Requires adapter
-- **Node.js host** — `npm run build && npm run start`
+## Why This Project Matters for ATS
 
----
-
-## Browser Support
-
-- Chrome/Edge 90+
-- Firefox 90+
-- Safari 15+ (iOS 15+)
-- Modern WebGL 2.0 browsers
-
----
-
-## Troubleshooting
-
-**WebGL context lost?** → Auto-recovery built-in (`WebGLErrorBoundary`)  
-**Scroll stuttering?** → Check `SmoothScrollProvider` in `layout.tsx`  
-**Slow on mobile?** → Capability detection auto-optimizes; check DevTools
-
----
+This repository positions the developer as someone who can combine product thinking, strong visual execution, and modern frontend engineering. It highlights experience in animation systems, rendering pipelines, and polished user interfaces—skills that are highly relevant for frontend, full-stack, and design-engineering roles.
 
 ## License
 
-MIT — See `LICENSE`. Demo assets (Unsplash images, videos) are placeholders; replace before production.
+MIT
+
+---
+
+Built for portfolio visibility, recruiter scanability, and modern frontend storytelling.
